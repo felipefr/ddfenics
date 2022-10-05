@@ -3,7 +3,7 @@ TUTORIAL_PATH=/home/ffiguere/ECN/handsOnCISM
 DDFENICS_ENV=ddfenics
 DDFENICS_GIT=https://github.com/felipefr/ddfenics_tutorial.git
 
-# run
+# Instructions:
 # 1) sh install.sh 1
 # 2) conda activate $DDFENICS_ENV
 # 3) sh install.sh 2
