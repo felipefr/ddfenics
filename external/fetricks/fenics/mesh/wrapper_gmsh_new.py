@@ -4,25 +4,18 @@
 # 
 # =============================================================================
 
-import numpy as np
 import meshio
 import pygmsh
 import os
-import dolfin as df
-from functools import reduce
 
 from fetricks.fenics.postprocessing.wrapper_io import exportMeshHDF5_fromGMSH
-from fetricks.fenics.mesh.mesh import Mesh
-
 
 class Gmsh(pygmsh.built_in.Geometry):
-    def __init__(self, meshname = "default.xdmf", dim = 2):
+    def __init__(self, meshname = "default.xdmf"):
         super().__init__()   
         self.mesh = None
-        self.dim = dim
         self.setNameMesh(meshname)
-        self.gmsh_opt = '-format msh2 -{0} -smooth 2 -anisoMax 1000.0'.format(self.dim)
-        
+        self.gmsh_opt = '-algo front2d -smooth 2 -anisoMax 1000.0'
         
     # write .geo file necessary to produce msh files using gmsh
     def writeGeo(self):
@@ -44,7 +37,7 @@ class Gmsh(pygmsh.built_in.Geometry):
         meshGeoFile = self.radFileMesh.format('geo')
         meshMshFile = self.radFileMesh.format('msh')
     
-        os.system('gmsh {0} {1} -o {2}'.format(self.gmsh_opt, meshGeoFile, meshMshFile))  # with del2d, noticed less distortions
+        os.system('gmsh -2 -format msh2 {0} {1} -o {2}'.format(self.gmsh_opt, meshGeoFile, meshMshFile))  # with del2d, noticed less distortions
         
         self.mesh = meshio.read(meshMshFile)
         
@@ -59,16 +52,9 @@ class Gmsh(pygmsh.built_in.Geometry):
             exportMeshHDF5_fromGMSH(self.mesh, savefile)
             
     def generate(self):
-        self.mesh = pygmsh.generate_mesh(self, verbose = False,
-                    extra_gmsh_arguments = self.gmsh_opt.split(), dim = self.dim, 
-                    mesh_file_type = 'msh2') # it should be msh2 cause of tags    
+        self.mesh = pygmsh.generate_mesh(self, verbose = False, extra_gmsh_arguments = self.gmsh_opt.split(), dim = 2, mesh_file_type = 'msh2') # it should be msh2 cause of tags    
                                           
 
-    def setNameMesh(self, meshname):
-        self.radFileMesh,  self.format = meshname.split('.')
-        self.radFileMesh += '.{0}'
-        
-        
     # def getEnrichedMesh(self, savefile = ''):
         
     #     if(len(savefile) == 0):
@@ -83,6 +69,10 @@ class Gmsh(pygmsh.built_in.Geometry):
         
     #     return Mesh(savefile)
     
+    def setNameMesh(self, meshname):
+        self.radFileMesh,  self.format = meshname.split('.')
+        self.radFileMesh += '.{0}'
+        
         
 # self.mesh = pygmsh.generate_mesh(self, verbose=False, dim=2, prune_vertices=True, prune_z_0=True,
 # remove_faces=False, extra_gmsh_arguments=gmsh_opt,  mesh_file_type='msh4') # it should be msh2 cause of tags

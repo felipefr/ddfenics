@@ -2,17 +2,43 @@ import dolfin as df
 import numpy as np
 from timeit import default_timer as timer
 
+# Block Solver [K 0; 0 K] u = [F_1 ... F_N]
+class BlockSolver:
+
+    def __init__(self, subproblems):
+        self.subproblems = subproblems
+        self.n_subproblems = len(self.subproblems)
+        
+        self.F = [ df.PETScVector() for i in range(self.n_subproblems) ] 
+        self.A = df.PETScMatrix()
+        
+        # supposing lhs and bcs are equal for all problems
+        df.assemble(self.subproblems[0].a_ufl , tensor = self.A)
+        [bc.apply(self.A) for bc in self.subproblems[0].bcs()] 
+        
+        self.solver = df.PETScLUSolver(self.A, 'superlu')
+
+    def assembly_rhs(self):
+        for i in range(self.n_subproblems): 
+            df.assemble(self.subproblems[i].L_ufl, tensor = self.F[i])    
+            [bc.apply(self.F[i]) for bc in self.subproblems[i].bcs()]
+            
+    def solve(self):   
+        self.assembly_rhs()
+        for i in range(self.n_subproblems): 
+            self.solver.solve(self.subproblems[i].u_ufl.vector(), self.F[i])
+            
 
 # Hand-coded implementation of Newton Raphson (Necessary in some cases)
-def Newton(Jac, Res, bc, du, u, callbacks = None, Nitermax = 10, tol = 1e-8): 
-    A, b = df.assemble_system(Jac, Res, bc)
+def Newton(Jac, Res, bc, du, u, callbacks = [], Nitermax = 10, tol = 1e-8): 
+    A, b = df.assemble_system(Jac, -Res, bc)
     nRes0 = b.norm("l2")
     nRes0 = nRes0 if nRes0>0.0 else 1.0
     nRes = nRes0
     
     V = u.function_space()
-    du.vector().set_local(np.zeros(len(du.vector().get_local())))
-    u.vector().set_local(np.zeros(len(du.vector().get_local())))
+    du.vector().set_local(np.zeros(V.dim()))
+    u.vector().set_local(np.zeros(V.dim()))
       
     niter = 0
     
@@ -20,12 +46,12 @@ def Newton(Jac, Res, bc, du, u, callbacks = None, Nitermax = 10, tol = 1e-8):
         bc_i.homogenize()
     
     while nRes/nRes0 > tol and niter < Nitermax:
-        df.solve(A, du.vector(), b, "mumps")
+        df.solve(A, du.vector(), b)
         u.assign(u + du)
         for callback in callbacks:
-            callback(u)
+            callback(u, du)
             
-        A, b = df.assemble_system(Jac, Res, bc)
+        A, b = df.assemble_system(Jac, -Res, bc)
         nRes = b.norm("l2")
         print(" Residual:", nRes)
         niter += 1

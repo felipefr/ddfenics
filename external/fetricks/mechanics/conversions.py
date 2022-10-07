@@ -9,17 +9,19 @@ import dolfin as df
 import numpy as np
 from fetricks.fenics.misc import symgrad
 
+
+
 # VOIGT NOTATION
 def symgrad_voigt(v):
     return df.as_vector([v[0].dx(0), v[1].dx(1), v[0].dx(1) + v[1].dx(0)])
 
 
-def stress2Voigt(s):
-    return df.as_vector([s[0, 0], s[1, 1], s[0, 1]])
+def stress2voigt(s):
+    return df.as_vector([s[0, 0], s[1, 1], 0.5*(s[0, 1] + s[1, 0]) ])
 
 
-def strain2Voigt(e):
-    return df.as_vector([e[0, 0], e[1, 1], 2*e[0, 1]])
+def strain2voigt(e):
+    return df.as_vector([e[0, 0], e[1, 1], e[0, 1] + e[1, 0]])
 
 def voigt2strain(e):
     return df.as_tensor([[e[0], 0.5*e[2]], [0.5*e[2], e[1]]])
@@ -36,17 +38,17 @@ def macro_strain(i):
                     
                     
 # VOIGT NOTATION: Generic backend
-def stress2Voigt_gen(s, backend = df.as_vector):
-    return backend([s[0, 0], s[1, 1], s[0, 1]])
+def stress2voigt_gen(s, backend = df.as_vector):
+    return backend([s[0, 0], s[1, 1], 0.5*(s[0, 1] + s[1, 0])])
 
 
-def strain2Voigt_gen(e, backend = df.as_vector):
-    return backend([e[0, 0], e[1, 1], 2*e[0, 1]])
+def strain2voigt_gen(e, backend = df.as_vector):
+    return backend([e[0, 0], e[1, 1], e[0, 1] + e[1, 0]])
 
-def voigt2Strain_gen(e, backend = df.as_vector):
+def voigt2strain_gen(e, backend = df.as_vector):
     return backend([[e[0], 0.5*e[2]], [0.5*e[2], e[1]]])
 
-def voigt2Stress_gen(s, backend = df.as_vector):
+def voigt2stress_gen(s, backend = df.as_vector):
     return backend([[s[0], s[2]], [s[2], s[1]]])
 
     
@@ -77,10 +79,9 @@ def mandel2tensor(X):
                         [halfsqrt2*X[2], X[1]]])
 
 def tensor4th2mandel(X):
-    
     return df.as_tensor([ [X[0,0,0,0], X[0,0,1,1], sqrt2*X[0,0,0,1]],
-                          [X[0,0,0,0], X[0,0,1,1], sqrt2*X[0,0,0,1]],
-                          [sqrt2*X[0,1,0,0], sqrt2*X[0,1,1,1], 2*X[1,1,1,1]] ] )
+                          [X[1,1,0,0], X[1,1,1,1], sqrt2*X[1,1,0,1]],
+                          [sqrt2*X[0,1,0,0], sqrt2*X[0,1,1,1], 2*X[0,1,0,1]] ] )
                       
 def tr_mandel(X):
     return X[0] + X[1]
@@ -89,12 +90,22 @@ def tr_mandel(X):
 def symgrad_mandel(v): # it was shown somehow to have better performance than doing it explicity
     return tensor2mandel(symgrad(v))
     
+
+# Used to convert dPsi/deps_m in mandel notation to the correct stress in mandel notation  
+def grad2mandel_vec(X):
+    return df.as_tensor([X[0] , X[1], 2*X[2]])
+
+# Used to convert dsigma_m/deps_m in mandel notation to the correct tangent tensor in mandel notation  
+def grad2mandel_ten(X):
+    return df.as_tensor([ [X[0,0] , X[0,1], 2*X[0,2]],
+                          [X[1,0] , X[1,1], 2*X[1,2]],
+                          [X[2,0] , X[2,1], 2*X[2,2]] ])
+    
 # this is in mandel
 def macro_strain_mandel(i): 
-    Eps_Voigt = np.zeros((3,))
-    Eps_Voigt[i] = 1
-    return np.array([[Eps_Voigt[0], halfsqrt2*Eps_Voigt[2]],
-                    [halfsqrt2*Eps_Voigt[2], Eps_Voigt[1]]])
+    Eps_Mandel = np.zeros((3,))
+    Eps_Mandel[i] = 1
+    return mandel2tensor_np(Eps_Mandel)
 
 
 
@@ -107,7 +118,9 @@ def vonMises(sig):
     return df.sqrt((3./2)*df.inner(s, s)) 
 
 
-
-
-
-
+# mandel to voigt conversions
+def mandel2voigtStrain(v, backend = df.as_vector):
+    return backend([v[0], v[1], sqrt2*v[2]]) 
+                    
+def mandel2voigtStress(v, backend = df.as_vector):
+    return backend([v[0], v[1], halfsqrt2*v[2]]) 

@@ -1,7 +1,3 @@
-import numpy as np
-import meshio
-import pygmsh
-import os
 import dolfin as df
 from functools import reduce
 

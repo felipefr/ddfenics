@@ -92,6 +92,21 @@ def extractDataset(filenameIn, filenameOut, label, mode):
     X = loadhd5(filenameIn, label)
     savehd5(filenameOut,X,label,mode)
 
+
+
+# load datasets from a file, extract subsets and save them into other file
+# - indexes : can be one per label or one general
+def extractSubdatasets(filenameIn, filenameOut, labels, indexes = [], mode = 'w-'):
+    n = len(labels)
+    if(isinstance(indexes, np.ndarray)):
+        indexes = n*[indexes]
+    
+    X = [loadhd5(filenameIn, labels[i])[indexes[i]] for i in range(n)]  
+    savehd5(filenameOut, X, labels, mode)
+    
+    return X
+    
+    
 # Merge datasets of list of files into a single hdf5 file 
 def merge(filenameInputs, filenameOutput, InputLabels, OutputLabels , 
           axis = 0, mode = 'w-'):

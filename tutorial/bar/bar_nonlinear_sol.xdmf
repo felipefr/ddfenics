@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+<Xdmf Version="3.0">
+  <Domain>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="u">
+      <Grid Name="u_0" GridType="Uniform">
+        <Topology NumberOfElements="60" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="60 3" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="44 2" Format="HDF">bar_nonlinear_sol.h5:u/u_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="CG" ElementDegree="1" ElementCell="triangle" Name="u" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="360 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_0/cell_dofs</DataItem>
+          <DataItem Dimensions="88 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:u/u_0/vector</DataItem>
+          <DataItem Dimensions="61 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+      <Grid Name="u_1" GridType="Uniform">
+        <Topology NumberOfElements="60" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="60 3" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_1/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="44 2" Format="HDF">bar_nonlinear_sol.h5:u/u_1/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="CG" ElementDegree="1" ElementCell="triangle" Name="u" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="360 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_1/cell_dofs</DataItem>
+          <DataItem Dimensions="88 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:u/u_1/vector</DataItem>
+          <DataItem Dimensions="61 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_1/x_cell_dofs</DataItem>
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_1/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="eps-0">
+      <Grid Name="eps-0_0" GridType="Uniform">
+        <Topology NumberOfElements="60" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="60 3" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps-0/eps-0_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="44 2" Format="HDF">bar_nonlinear_sol.h5:eps-0/eps-0_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="triangle" Name="eps-0" Center="Other" AttributeType="Scalar">
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps-0/eps-0_0/cell_dofs</DataItem>
+          <DataItem Dimensions="180 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:eps-0/eps-0_0/vector</DataItem>
+          <DataItem Dimensions="61 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps-0/eps-0_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps-0/eps-0_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="eps-1">
+      <Grid Name="eps-1_0" GridType="Uniform">
+        <Topology NumberOfElements="60" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="60 3" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps-1/eps-1_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="44 2" Format="HDF">bar_nonlinear_sol.h5:eps-1/eps-1_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="triangle" Name="eps-1" Center="Other" AttributeType="Scalar">
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps-1/eps-1_0/cell_dofs</DataItem>
+          <DataItem Dimensions="180 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:eps-1/eps-1_0/vector</DataItem>
+          <DataItem Dimensions="61 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps-1/eps-1_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps-1/eps-1_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="eps-2">
+      <Grid Name="eps-2_0" GridType="Uniform">
+        <Topology NumberOfElements="60" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="60 3" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps-2/eps-2_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="44 2" Format="HDF">bar_nonlinear_sol.h5:eps-2/eps-2_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="triangle" Name="eps-2" Center="Other" AttributeType="Scalar">
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps-2/eps-2_0/cell_dofs</DataItem>
+          <DataItem Dimensions="180 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:eps-2/eps-2_0/vector</DataItem>
+          <DataItem Dimensions="61 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps-2/eps-2_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps-2/eps-2_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="sig-0">
+      <Grid Name="sig-0_0" GridType="Uniform">
+        <Topology NumberOfElements="60" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="60 3" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig-0/sig-0_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="44 2" Format="HDF">bar_nonlinear_sol.h5:sig-0/sig-0_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="triangle" Name="sig-0" Center="Other" AttributeType="Scalar">
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig-0/sig-0_0/cell_dofs</DataItem>
+          <DataItem Dimensions="180 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:sig-0/sig-0_0/vector</DataItem>
+          <DataItem Dimensions="61 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig-0/sig-0_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig-0/sig-0_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="sig-1">
+      <Grid Name="sig-1_0" GridType="Uniform">
+        <Topology NumberOfElements="60" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="60 3" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig-1/sig-1_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="44 2" Format="HDF">bar_nonlinear_sol.h5:sig-1/sig-1_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="triangle" Name="sig-1" Center="Other" AttributeType="Scalar">
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig-1/sig-1_0/cell_dofs</DataItem>
+          <DataItem Dimensions="180 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:sig-1/sig-1_0/vector</DataItem>
+          <DataItem Dimensions="61 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig-1/sig-1_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig-1/sig-1_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="sig-2">
+      <Grid Name="sig-2_0" GridType="Uniform">
+        <Topology NumberOfElements="60" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="60 3" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig-2/sig-2_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="44 2" Format="HDF">bar_nonlinear_sol.h5:sig-2/sig-2_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="triangle" Name="sig-2" Center="Other" AttributeType="Scalar">
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig-2/sig-2_0/cell_dofs</DataItem>
+          <DataItem Dimensions="180 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:sig-2/sig-2_0/vector</DataItem>
+          <DataItem Dimensions="61 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig-2/sig-2_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig-2/sig-2_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="eps">
+      <Grid Name="eps_0" GridType="Uniform">
+        <Topology NumberOfElements="60" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="60 3" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps/eps_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="44 2" Format="HDF">bar_nonlinear_sol.h5:eps/eps_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="triangle" Name="eps" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="180 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps/eps_0/cell_dofs</DataItem>
+          <DataItem Dimensions="180 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:eps/eps_0/vector</DataItem>
+          <DataItem Dimensions="61 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps/eps_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps/eps_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="sig">
+      <Grid Name="sig_0" GridType="Uniform">
+        <Topology NumberOfElements="60" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="60 3" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig/sig_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="44 2" Format="HDF">bar_nonlinear_sol.h5:sig/sig_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="triangle" Name="sig" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="180 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig/sig_0/cell_dofs</DataItem>
+          <DataItem Dimensions="180 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:sig/sig_0/vector</DataItem>
+          <DataItem Dimensions="61 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig/sig_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="60 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig/sig_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+  </Domain>
+</Xdmf>
