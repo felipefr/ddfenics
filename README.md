@@ -1,8 +1,9 @@
 
-# Tutorial DDFenics at CISM's minicourse Data-driven Mechanics, Udine, Italy (2022) 
-
-## DDFenics
+# DDFenics
 A (model-free) Data-driven implementation based on fenics (https://github.com/felipefr/ddfenics).
+
+## Tutorial DDFenics at CISM's minicourse Data-driven Mechanics, Udine, Italy (2022) 
+Aim: Solve a simple 2D bar problem using standard Fenics and DDFenics.
 
 ## Requirements 
 
@@ -21,11 +22,12 @@ Optionally for mesh generation and postprocessing (with Paraview):
 - gmsh      /    4.6.0   (pypi)
 
 Optionally for an interactive run of the tutorial:
-- library          version
-- jupyterlab	   latest or no restriction (conda-forge)
-- ipykernel	   latest or no restriction (conda-forge)
+- library  /  version
+- jupyterlab / latest or no restriction (conda-forge)
+- ipykernel	 /  latest or no restriction (conda-forge)
 
 Obs: the default repository is conda-forge, otherwise pypi from pip. Recommended versions should be understood only as guideline and sometimes the very same version is not indeed mandatory.
+
 Obs: We included in the "external" folder a lite version of fetricks (https://github.com/felipefr/fetricks), that implements some auxiliary routines for computational mechanics using fenics. However, you can decide to use your own functions for this job. 
 
 ## Installation
