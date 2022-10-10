@@ -26,6 +26,7 @@ Optionally for an interactive run of the tutorial:
 - ipykernel	   latest or no restriction (conda-forge)
 
 Obs: the default repository is conda-forge, otherwise pypi from pip. Recommended versions should be understood only as guideline and sometimes the very same version is not indeed mandatory.
+
 Obs: We included in the "external" folder a version of fetricks (https://github.com/felipefr/fetricks), that implements some auxiliary routines for computational mechanics using fenics. However, you can can decide to use your own functions implemented. 
 
 ## Installation
@@ -41,7 +42,9 @@ Obs: For Windows users, unfortunately Fenics is not available in the Anaconda re
 - run: sh install.sh 2
 
 Obs: You can run step by step the bash script in order to have full control of eventual errors in the installation.
+
 Obs: Make sure your PYTHONPATH variable contains the root directory in which you cloned DDFenics. By default, the anaconda installation does not take into consideration the OS path. You can add a .pth (any name) file listing the directories into ~/miniconda/envs/ddfenics_tutorial/lib/python3.8/site-packages. You can also add the directories you want into spyder (Tools > PYTHONPATH), if you decide to use it.
+
 Obs: Command to convert python notebooks to python files (if you prefer to): jupyter nbconvert --to script file.ipynb 
 
 ## Basic Usage (refer to tutorial for a clean explanation)
