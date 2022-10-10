@@ -4,33 +4,33 @@
   <Domain>
     <Grid Name="TimeSeries" GridType="Collection" CollectionType="Temporal">
       <Grid Name="mesh" GridType="Uniform">
-        <Topology NumberOfElements="6000" TopologyType="Triangle" NodesPerElement="3">
-          <DataItem Dimensions="6000 3" NumberType="UInt" Format="HDF">bar_nonlinear_vtk.h5:/Mesh/0/mesh/topology</DataItem>
+        <Topology NumberOfElements="1000" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="1000 3" NumberType="UInt" Format="HDF">bar_nonlinear_vtk.h5:/Mesh/0/mesh/topology</DataItem>
         </Topology>
         <Geometry GeometryType="XY">
-          <DataItem Dimensions="3131 2" Format="HDF">bar_nonlinear_vtk.h5:/Mesh/0/mesh/geometry</DataItem>
+          <DataItem Dimensions="561 2" Format="HDF">bar_nonlinear_vtk.h5:/Mesh/0/mesh/geometry</DataItem>
         </Geometry>
         <Time Value="-1" />
         <Attribute Name="u" AttributeType="Vector" Center="Node">
-          <DataItem Dimensions="3131 3" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/0</DataItem>
+          <DataItem Dimensions="561 3" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/0</DataItem>
         </Attribute>
         <Attribute Name="eps-0" AttributeType="Scalar" Center="Cell">
-          <DataItem Dimensions="6000 1" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/1</DataItem>
+          <DataItem Dimensions="1000 1" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/1</DataItem>
         </Attribute>
         <Attribute Name="eps-1" AttributeType="Scalar" Center="Cell">
-          <DataItem Dimensions="6000 1" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/2</DataItem>
+          <DataItem Dimensions="1000 1" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/2</DataItem>
         </Attribute>
         <Attribute Name="eps-2" AttributeType="Scalar" Center="Cell">
-          <DataItem Dimensions="6000 1" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/3</DataItem>
+          <DataItem Dimensions="1000 1" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/3</DataItem>
         </Attribute>
         <Attribute Name="sig-0" AttributeType="Scalar" Center="Cell">
-          <DataItem Dimensions="6000 1" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/4</DataItem>
+          <DataItem Dimensions="1000 1" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/4</DataItem>
         </Attribute>
         <Attribute Name="sig-1" AttributeType="Scalar" Center="Cell">
-          <DataItem Dimensions="6000 1" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/5</DataItem>
+          <DataItem Dimensions="1000 1" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/5</DataItem>
         </Attribute>
         <Attribute Name="sig-2" AttributeType="Scalar" Center="Cell">
-          <DataItem Dimensions="6000 1" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/6</DataItem>
+          <DataItem Dimensions="1000 1" Format="HDF">bar_nonlinear_vtk.h5:/VisualisationVector/6</DataItem>
         </Attribute>
       </Grid>
     </Grid>

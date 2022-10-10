@@ -33,7 +33,7 @@ Obs: We included in the "external" folder a lite version of fetricks (https://gi
 ## Installation
 We recommend the use of miniconda (https://docs.conda.io/en/latest/miniconda.html) or your preferred Anaconda-like variants.
 
-Obs: For Windows users, unfortunately Fenics is not available in the Anaconda repositories for Windows. As alternative, we recommend i) to use the the Linux (Ubuntu) subsystem and use the instructions as below; ii) set some virtual machine (e.g. Virtual Box) or iii) use the Docker version of Fenics (not tested!) (https://fenicsproject.org/download/archive/).
+Obs: For Windows users, unfortunately Fenics is not available in the Anaconda repositories for Windows. As alternative, we recommend: i) to use the the Linux (Ubuntu) subsystem (https://learn.microsoft.com/en-us/windows/wsl/install) and use the instructions as below; ii) set some virtual machine (e.g. Virtual Box) or iii) use the Docker version of Fenics (not tested!) (https://fenicsproject.org/download/archive/).
 
 # Steps:
 - Download the install.sh script
@@ -41,18 +41,18 @@ Obs: For Windows users, unfortunately Fenics is not available in the Anaconda re
 - run: sh install.sh 1
 - activate the conda environment: conda activate <ddfenics_environment>
 - run: sh install.sh 2
-- launch jupyter: jupyter-lab in right parent folder
+- launch jupyter: jupyter-lab in the desired parent folder
 
 Obs: You can run step by step the bash script in order to have full control of eventual errors in the installation.
 
-Obs: Make sure your PYTHONPATH variable contains the root directory in which you cloned DDFenics. By default, the anaconda installation does not take into consideration the OS path. You can add a .pth (any name) file listing the directories into ~/miniconda/envs/ddfenics_tutorial/lib/python3.8/site-packages. You can also add the directories you want into spyder (Tools > PYTHONPATH), if you decide to use it.
+Obs: Note that the script automatically add into the PYTHONPATH the root directory in which you cloned DDFenics. This is done by adding a .pth file (any name) with a list of directories in ~/miniconda3/envs/ddfenics/lib/python3.8/site-packages. You can also add the directories ''by hand'' in spyder (Tools > PYTHONPATH) or sys.path.insert(..., '...folder...') in your source files.
 
 Obs: Command to convert python notebooks to python files (if you prefer not use jupyter-lab): jupyter nbconvert --to script file.ipynb 
 
 ## Basic Usage (refer to tutorial for a clean explanation)
 
 The usage mimetises the basic framework of fenics by defining Data-driven equivalents of the LinearVariationalProblem
-and LinearVariationalProblem objects (see https://fenicsproject.org/pub/tutorial/html/._ftut1018.html), respectively DDProblem and DDSolver.
+and LinearVariationalSolver objects (see https://fenicsproject.org/pub/tutorial/html/._ftut1018.html), respectively DDProblem and DDSolver.
 Additionally the DDProblem object depends on a Data-driven material, which is defined by an instance of a DDMaterial. The output of the DD solver also contains
 the mechanical and neighrest projections (in the material database) states, which are instances of DDFunction (just a derived class of the dolfin Function to facilitate 
 some needed domain-specific operations )
@@ -62,7 +62,7 @@ some needed domain-specific operations )
 0. Definition of standard constitutive equations. 
 1. Definition of mesh, FE spaces, boundary conditions, variational forms, etc. 
 2. Variational problem definition: problem = LinearVariationalProblem(a, b, uh, bcs)
-3. Solver definition: solver = LinearVariationalProblem(problem, solver_args) 
+3. Solver definition: solver = LinearVariationalSolver(problem, solver_args) 
 4. Solve the problem: solver.solve()
 
 
