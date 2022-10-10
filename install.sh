@@ -1,7 +1,7 @@
 CONDA_PATH=/home/ffiguere/miniconda3
 TUTORIAL_PATH=/home/ffiguere/ECN/handsOnCISM
 DDFENICS_ENV=ddfenics
-DDFENICS_GIT=https://github.com/felipefr/ddfenics_tutorial.git
+DDFENICS_GIT=https://github.com/felipefr/ddfenics.git
 
 # Instructions:
 # 1) sh install.sh 1
