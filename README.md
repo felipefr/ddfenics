@@ -2,23 +2,23 @@
 # Tutorial DDFenics at CISM's minicourse Data-driven Mechanics, Udine, Italy (2022) 
 
 ## DDFenics
-A (model-free) Data-driven implementation based on fenics.
+A (model-free) Data-driven implementation based on fenics (https://github.com/felipefr/ddfenics).
 
 ## Requirements 
 
 DDFenics relies on the following libraries/packages (some others are installed automatically altogether with the principal ones):
-- library          version
-- python           3.8 (conda-forge) 
-- fenics           2019.1.0   (conda-forge)
-- scikit-learn     latest or no restriction (conda-forge)
-- matplotlib	   latest or no restriction (conda-forge)
+- library  /        version
+- python   /        3.8 (conda-forge) 
+- fenics   /        2019.1.0   (conda-forge)
+- scikit-learn /  latest or no restriction (conda-forge)
+- matplotlib	/  latest or no restriction (conda-forge)
 
 Optionally for mesh generation and postprocessing (with Paraview):
-- library          version
-- h5py             2.10.0 (conda-forge)
-- meshio           3.3.1  (pypi)
-- pygmsh           6.0.2  (pypi)
-- gmsh             4.6.0   (pypi)
+- library   /    version
+- h5py      /    2.10.0 (conda-forge)
+- meshio    /    3.3.1  (pypi)
+- pygmsh    /    6.0.2  (pypi)
+- gmsh      /    4.6.0   (pypi)
 
 Optionally for an interactive run of the tutorial:
 - library          version
@@ -42,7 +42,9 @@ Obs: For Windows users, unfortunately Fenics is not available in the Anaconda re
 - launch jupyter: jupyter-lab in right parent folder
 
 Obs: You can run step by step the bash script in order to have full control of eventual errors in the installation.
+
 Obs: Make sure your PYTHONPATH variable contains the root directory in which you cloned DDFenics. By default, the anaconda installation does not take into consideration the OS path. You can add a .pth (any name) file listing the directories into ~/miniconda/envs/ddfenics_tutorial/lib/python3.8/site-packages. You can also add the directories you want into spyder (Tools > PYTHONPATH), if you decide to use it.
+
 Obs: Command to convert python notebooks to python files (if you prefer not use jupyter-lab): jupyter nbconvert --to script file.ipynb 
 
 ## Basic Usage (refer to tutorial for a clean explanation)
