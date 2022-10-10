@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>
+<Xdmf Version="3.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <Domain>
+    <Grid Name="TimeSeries" GridType="Collection" CollectionType="Temporal">
+      <Grid Name="mesh" GridType="Uniform">
+        <Topology NumberOfElements="6000" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="6000 3" NumberType="UInt" Format="HDF">bar_dd.h5:/Mesh/0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="3131 2" Format="HDF">bar_dd.h5:/Mesh/0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="-1" />
+        <Attribute Name="uh" AttributeType="Vector" Center="Node">
+          <DataItem Dimensions="3131 3" Format="HDF">bar_dd.h5:/VisualisationVector/0</DataItem>
+        </Attribute>
+        <Attribute Name="sigma_mech" AttributeType="Vector" Center="Node">
+          <DataItem Dimensions="3131 3" Format="HDF">bar_dd.h5:/VisualisationVector/1</DataItem>
+        </Attribute>
+        <Attribute Name="sigma_db" AttributeType="Vector" Center="Node">
+          <DataItem Dimensions="3131 3" Format="HDF">bar_dd.h5:/VisualisationVector/2</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+  </Domain>
+</Xdmf>

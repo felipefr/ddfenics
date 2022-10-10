@@ -12,7 +12,7 @@ import math
 
 
 class DDMetric:
-    def __init__(self, C, omega = 0.0, alpha = 1.0, V = None, dx = None):
+    def __init__(self, C, omega = -0.5, alpha = 1.0, V = None, dx = None):
         self.V = V
         self.dx = dx
         self.omega = omega
