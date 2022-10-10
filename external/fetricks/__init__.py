@@ -6,8 +6,6 @@ from fetricks.fenics.misc import symgrad, Integral
 from fetricks.fenics.la.wrapper_solvers import Newton, local_project, local_project_given_sol, LocalProjector
 from fetricks.fenics.mesh.mesh import Mesh
 from fetricks.fenics.mesh.wrapper_gmsh import Gmsh 
-from fetricks.fenics.material.multiscale_model import multiscaleModel, multiscaleModelExpression
-from fetricks.fenics.material.hyperelastic_model import hyperelasticModel, hyperelasticModelExpression
 
 
 __all__ = ['stress2voigt', 'strain2voigt', 'voigt2strain', 'voigt2stress', 'mandel2voigtStrain', 'mandel2voigtStress',
@@ -15,5 +13,4 @@ __all__ = ['stress2voigt', 'strain2voigt', 'voigt2strain', 'voigt2stress', 'mand
 'grad2mandel_vec', 'grad2mandel_ten', 
 'symgrad', 'Integral',
 'Newton', 'local_project', 'local_project_given_sol', 'LocalProjector', 
-'Mesh', 'Gmsh',
-'multiscaleMaterialModel', 'multiscaleMaterialModelExpression', 'hyperelasticModel', 'hyperelasticModelExpression']
+'Mesh', 'Gmsh']
