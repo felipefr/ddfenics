@@ -74,3 +74,4 @@ Stresses and strains are instances of DDFunction(Sh0).
 
 ## Citing
 Please cite this repository if this library has been useful for you.
+[![DOI](https://zenodo.org/badge/545056382.svg)](https://zenodo.org/badge/latestdoi/545056382)
