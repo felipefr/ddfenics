@@ -23,23 +23,18 @@ class DDProblem(DDProblemAbstract):
     def __init__(self, a, L, sol, bcs,  
                  form_compiler_parameters = {}, bcsPF = [], metric = None):
     
-        # self.omega = self.omega
-        self.omega = df.Constant(metric.omega)
-        self.alpha = df.Constant(metric.alpha) 
         self.metric = metric
-        
+        self.omega = -0.5 # relaxation value
         bcs_eta = self.__convertBCs_eta(bcs)
         
         super().__init__(a, L, sol, bcs, form_compiler_parameters, bcsPF, bcs_eta = bcs_eta)
-            
-        # self.alpha.assign(alpha)
-        # self.omega.assign(omega)
         
+            
     def __convertBCs_eta(self, bcs):
     
         bcs_eta = [df.DirichletBC(b) for b in bcs]
         for b in bcs_eta:
-            c = df.Constant(tuple(self.metric.omega*b.value().values()))
+            c = df.Constant(tuple(self.omega*b.value().values()))
             b.set_value(c)
             
         return bcs_eta
@@ -58,10 +53,9 @@ class DDProblem(DDProblemAbstract):
         
     def update_state_mech(self):
         w = self.omega
-        ainv = self.alpha**(-1.0)
         
         state_update = ( self.ddmat.grad(self.u), 
-                        self.z_db[1] + ainv*self.ddmat.sigC_e(w*self.z_db[0] - self.a.ddmat.grad(self.eta)) ) 
+                        self.z_db[1] + self.ddmat.sigC_e(w*self.z_db[0] - self.a.ddmat.grad(self.eta)) ) 
         
     
         if(type(self.z_mech) == type([])):

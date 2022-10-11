@@ -54,17 +54,12 @@ class DDSolver:
         
         self.LS = DDla(self.problem)
         
-        self.hist = {'distance' : [], 'relative_distance': [], 'relative_energy': [], 'sizeDB': [], 'classical_relative_energy': []}
-        
-        self.metric = self.problem.metric 
-        self.metric_energy = self.metric.diagonal()
+        self.hist = {'distance' : [], 'relative_distance': [], 'relative_energy': []}
         
         self.calls_hist = {}
         self.calls_hist['distance'] = lambda m, m_ref, m0 : m
         self.calls_hist['relative_distance'] = lambda m, m_ref, m0 : np.abs(m-m0)/m_ref
         self.calls_hist['relative_energy'] = lambda m, m_ref, m0 : (m/m_ref)**2 
-        self.calls_hist['sizeDB'] = lambda m, m_ref, m0 : len(self.problem.ddmat.DB)
-        self.calls_hist['classical_relative_energy'] = lambda m, m_ref, m0 : (self.metric_energy.dist_fenics(self.problem.z_mech, self.problem.z_db)/m_ref)**2.0
         
 
     def initialisation(self, op, seed):
