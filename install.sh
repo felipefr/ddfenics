@@ -13,7 +13,7 @@ printf "options:\n 1 - conda environment creation and git clone\n 2 - installing
 
 if [ $1 -eq 1 ]; then
 	conda create -n $DDFENICS_ENV -c conda-forge fenics python=3.8 h5py=2.10.0 jupyterlab ipykernel scikit-learn matplotlib
-	git clone $DDFENICS_GIT $TUTORIAL_PATH/$DDFENICS_ENV
+	git clone --depth 1 $DDFENICS_GIT $TUTORIAL_PATH/$DDFENICS_ENV
 	printf "$TUTORIAL_PATH/\n$TUTORIAL_PATH/$DDFENICS_ENV/external/" > extra_python_folders.pth
 	cp extra_python_folders.pth $CONDA_PATH/envs/$DDFENICS_ENV/lib/python3.8/site-packages/extra_python_folders.pth
 fi 
