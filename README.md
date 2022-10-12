@@ -49,6 +49,10 @@ Obs: Note that the script automatically add into the PYTHONPATH the root directo
 
 Obs: Command to convert python notebooks to python files (if you prefer not use jupyter-lab): jupyter nbconvert --to script file.ipynb 
 
+## Simple documentation
+
+![DDFenics](DDFenics.png)
+
 ## Basic Usage (refer to tutorial for a clean explanation)
 
 The usage mimetises the basic framework of fenics by defining Data-driven equivalents of the LinearVariationalProblem
