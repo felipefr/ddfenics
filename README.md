@@ -6,6 +6,10 @@ A (model-free) Data-driven implementation based on fenics (https://github.com/fe
 Aim: Solve a simple 2D bar problem using standard Fenics and DDFenics.
 - 1) 2D bar (linear elastic) in FEniCs: tutorial/linear/main_bar.ipynb
 - 2) 2D bar (linear elastic) in DDFenics (Hands-on): tutorial/linear/main_bar_dd_to_fill.ipynb
+  - Complete the "missing lines" (commented in the notebook) 
+  - Plot the convergence (with data) curves
+  - Run the sanity-check (last block of notebook) and redo DDCM
+  - Change C = some isotropic elastic tensor (hookean) for changed (E', nu') ?
 - 3) 2D bar (nonlinear elastic) in FEniCs: tutorial/nonlinear/main_bar_nonlinear.ipynb
 - 4) 2D bar (nonlinear elastic) in DDFenics: tutorial/nonlinear/main_bar_nonlinear_dd.ipynb
 
