@@ -4,9 +4,14 @@ A (model-free) Data-driven implementation based on fenics (https://github.com/fe
 
 ## Tutorial DDFenics at CISM's minicourse Data-driven Mechanics, Udine, Italy (2022) 
 Aim: Solve a simple 2D bar problem using standard Fenics and DDFenics.
+- 1) 2D bar (linear elastic) in FEniCs: tutorial/linear/main_bar.ipynb
+- 2) 2D bar (linear elastic) in DDFenics (Hands-on): tutorial/linear/main_bar_dd_to_fill.ipynb
+- 3) 2D bar (nonlinear elastic) in FEniCs: tutorial/nonlinear/main_bar_nonlinear.ipynb
+- 4) 2D bar (nonlinear elastic) in DDFenics: tutorial/nonlinear/main_bar_nonlinear_dd.ipynb
 
-## Requirements 
+## Installation 
 
+### Requirements
 DDFenics relies on the following libraries/packages (some others are installed automatically altogether with the principal ones):
 - library  /        version
 - python   /        3.8 (conda-forge) 
@@ -30,12 +35,11 @@ Obs: the default repository is conda-forge, otherwise pypi from pip. Recommended
 
 Obs: We included in the "external" folder a lite version of fetricks (https://github.com/felipefr/fetricks), that implements some auxiliary routines for computational mechanics using fenics. However, you can decide to use your own functions for this job. 
 
-## Installation
-We recommend the use of miniconda (https://docs.conda.io/en/latest/miniconda.html) or your preferred Anaconda-like variants.
+Obs: We recommend the use of miniconda (https://docs.conda.io/en/latest/miniconda.html) or your preferred Anaconda-like variants.
 
 Obs: For Windows users, unfortunately Fenics is not available in the Anaconda repositories for Windows. As alternative, we recommend: i) to use the the Linux (Ubuntu) subsystem (https://learn.microsoft.com/en-us/windows/wsl/install) and use the instructions as below; ii) set some virtual machine (e.g. Virtual Box) or iii) use the Docker version of Fenics (not tested!) (https://fenicsproject.org/download/archive/).
 
-# Steps:
+### Steps:
 - Download the install.sh script
 - Change the initial paths accordingly to your system/preferences
 - run: sh install.sh 1
@@ -49,7 +53,7 @@ Obs: Note that the script automatically add into the PYTHONPATH the root directo
 
 Obs: Command to convert python notebooks to python files (if you prefer not use jupyter-lab): jupyter nbconvert --to script file.ipynb 
 
-## Simple documentation
+## Documentation
 1. Map between Galerkin-like variational approximation and FEniCs objects.
 ![FenicsContinuum](FenicsContinuum.png)
 
@@ -59,7 +63,7 @@ Obs: Command to convert python notebooks to python files (if you prefer not use 
 3. Map between (Model-free) Data-driven formulation and the corresponding objects in DDFenics.
 ![DDFenics](DDFenics.png)
 
-## Basic Usage (refer to tutorial for a clean explanation)
+### Basic Usage (a little deprecated) 
 
 The usage mimetises the basic framework of fenics by defining Data-driven equivalents of the LinearVariationalProblem
 and LinearVariationalSolver objects (see https://fenicsproject.org/pub/tutorial/html/._ftut1018.html), respectively DDProblem and DDSolver.
@@ -67,7 +71,7 @@ Additionally the DDProblem object depends on a Data-driven material, which is de
 the mechanical and neighrest projections (in the material database) states, which are instances of DDFunction (just a derived class of the dolfin Function to facilitate 
 some needed domain-specific operations )
 
-### Fenics
+#### Fenics
 
 0. Definition of standard constitutive equations. 
 1. Definition of mesh, FE spaces, boundary conditions, variational forms, etc. 
@@ -76,7 +80,7 @@ some needed domain-specific operations )
 4. Solve the problem: solver.solve()
 
 
-### DDFenics
+#### DDFenics
 
 0. Definition of Data-driven constitutive equations : loading of material datasets and definition of an approximative metric ==> ddmat = DDMaterial(DB, Metric) 
 1. Definition of mesh, FE spaces, boundary conditions, standard constitutive equations, variational forms, etc. (idem)
