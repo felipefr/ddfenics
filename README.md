@@ -50,7 +50,13 @@ Obs: Note that the script automatically add into the PYTHONPATH the root directo
 Obs: Command to convert python notebooks to python files (if you prefer not use jupyter-lab): jupyter nbconvert --to script file.ipynb 
 
 ## Simple documentation
+1. Map between Galerkin-like variational approximation and FEniCs objects.
+![FenicsContinuum](FenicsContinuum.png)
 
+2. Map between FEniCs and the corresponding objects in DDFenics.
+![FenicsDDFenics](FenicsDDFenics.png)
+
+3. Map between (Model-free) Data-driven formulation and the corresponding objects in DDFenics.
 ![DDFenics](DDFenics.png)
 
 ## Basic Usage (refer to tutorial for a clean explanation)
