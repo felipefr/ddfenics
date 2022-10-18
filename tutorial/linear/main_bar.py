@@ -45,48 +45,18 @@ domain = mesh.create_rectangle(MPI.COMM_WORLD,  [np.array([0.0, 0.0]), np.array(
 # 2*) Plot mesh
 # In[31]:
 
-# from dolfinx import plot
-# import pyvista
-# tdim = 2
-# topology, cell_types, geometry = plot.create_vtk_mesh(domain, tdim)
-# grid = pyvista.UnstructuredGrid(topology, cell_types, geometry)
+from dolfinx import plot
+import pyvista
+tdim = 2
+topology, cell_types, geometry = plot.create_vtk_mesh(domain, tdim)
+grid = pyvista.UnstructuredGrid(topology, cell_types, geometry)
 
-# pyvista.set_jupyter_backend("pythreejs")
+pyvista.set_jupyter_backend("pythreejs")
 
-# plotter = pyvista.Plotter()
-# plotter.add_mesh(grid, show_edges=True)
-# plotter.view_xy()
-# plotter.show()
-
-
-# 3) **Mesh regions** 
-
-# In[32]:
-
-clampedBndFlag = 1
-loadBndFlag = 2
-
-boundaries = [(clampedBndFlag, lambda x: np.isclose(x[0], 0.)),
-              (loadBndFlag, lambda x: np.isclose(x[0], Lx))]    
-
-facet_indices, facet_markers = [], []
-fdim = domain.topology.dim - 1
-for (marker, locator) in boundaries:
-    facets = mesh.locate_entities(domain, fdim, locator)
-    facet_indices.append(facets)
-    facet_markers.append(np.full_like(facets, marker))
-    
-
-facet_indices = np.hstack(facet_indices).astype(np.int32)
-facet_markers = np.hstack(facet_markers).astype(np.int32)
-sorted_facets = np.argsort(facet_indices)
-
-facet_tag = mesh.meshtags(domain, fdim, facet_indices[sorted_facets], facet_markers[sorted_facets])
-
-
-
-dx = ufl.Measure('dx', domain=domain)
-ds = ufl.Measure('ds', domain=domain, subdomain_data=facet_tag)
+plotter = pyvista.Plotter()
+plotter.add_mesh(grid, show_edges=True)
+plotter.view_xy()
+plotter.show()
 
 
 # 4) **Spaces**
@@ -97,17 +67,40 @@ from dolfinx import fem
 
 Uh = fem.VectorFunctionSpace(domain, ("CG", 1))
 
+
+# 3) **Mesh regions** 
+
+# In[32]:
+
+clampedBndFlag = 1
+loadBndFlag = 2
+fdim = domain.topology.dim - 1 # facets topological dimension
+
+bndLeft_lamb = lambda x: np.isclose(x[0], 0.)
+bndRight_lamb = lambda x: np.isclose(x[0], Lx)
+              
+facetsRight = mesh.locate_entities(domain, fdim, bndRight_lamb)
+facet_markers = np.full_like(facetsRight, loadBndFlag)
+# sorted_facets = np.argsort(facet_indices)
+facet_tag = mesh.meshtags(domain, fdim, facetsRight, facet_markers)
+    
+dx = ufl.Measure('dx', domain=domain)
+ds = ufl.Measure('ds', domain=domain, subdomain_data=facet_tag)
+
+
 u_D = fem.Function(Uh)
 
 u_D_c = fem.Constant(domain, np.zeros(2))
 # u_D.interpolate(u_D_c)
 
-dofs_L = fem.locate_dofs_geometrical(Uh, boundaries[0][1])
+dofs_L = fem.locate_dofs_geometrical(Uh, bndLeft_lamb)
 
 bcL = fem.dirichletbc(np.zeros(2), dofs_L, Uh)
 
 ty = -0.1
 traction = fem.Constant(domain, np.array([0.0, ty]))
+
+
 
 # In[35]:
 
