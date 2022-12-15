@@ -60,13 +60,13 @@ Obs: For Windows users, unfortunately Fenics is not available in the Anaconda re
 
 ## Documentation
 1. Map between Galerkin-like variational approximation and FEniCs objects.
-![FenicsContinuum](FenicsContinuum.png)
+![FenicsContinuum](./docs/FenicsContinuum.png)
 
 2. Map between FEniCs and the corresponding objects in DDFenics.
-![FenicsDDFenics](FenicsDDFenics.png)
+![FenicsDDFenics](./docs/FenicsDDFenics.png)
 
 3. Map between (Model-free) Data-driven formulation and the corresponding objects in DDFenics.
-![DDFenics](DDFenics.png)
+![DDFenics](./docs/DDFenics.png)
 
 ### Basic Usage (a little deprecated) 
 
