@@ -1,24 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan 27 14:20:19 2022
+Created on Fri Jan  6 11:42:45 2023
 
-@author: felipe
+@author: ffiguere
 """
+
 
 import dolfin as df
 import numpy as np
-from fetricks import symgrad_mandel
 import matplotlib.pyplot as plt
 
 class DDMaterial:
     
-    def __init__(self, DB, C = None, grad = symgrad_mandel, addzero=True, shuffle=1):
+    def __init__(self, DB, addzero=True, shuffle=1, setStressFunctions = True):
         
         if(type(DB) == type('s')):
             self.DB = self.read_data(DB)
         else:
             self.DB = DB
+
+        self.strain_dim = self.DB.shape[-1]
         
         if(shuffle>-1):
             self.shuffleData(shuffle)
@@ -26,60 +28,6 @@ class DDMaterial:
         if(addzero):
             self.addZeroState()
         
-        self.grad = grad
-        
-        if(type(C) == type(None)):
-            self.C = self.estimateC()
-        else:
-            self.C = C
-            
-        self.setStressFunctions()
-        
-    def setStressFunctions(self):
-        
-        if(self.C.shape[0] == 1 and self.C.shape[1] == 1):
-            self.Cfe = df.Constant(self.C[0,0])
-        else:
-            self.Cfe = df.as_tensor(self.C)
-                
-        self.sigC = lambda u : self.Cfe*self.grad(u)
-        self.sigC_e = lambda e : self.Cfe*e
-    
-    def estimateC(self, ):
-                
-        # U, sig, VT = np.linalg.svd(self.DB.reshape((-1,6)) ,full_matrices = False)
-        
-        # A = VT[:6,:6]*sig[:6]
-        # print(A.shape)
-        # Cest = A[3:6,3:6]@np.linalg.inv(A[:3,:3])
-        
-        
-        Corr = self.DB.reshape((-1,6)).T@self.DB.reshape((-1,6))
-        sig, U = np.linalg.eigh(Corr)
-
-        asort = np.argsort(sig)
-        sig = sig[asort[::-1]]
-        U = U[:,asort[::-1]]
-        
-        Cest = U[3:6,:3]@np.linalg.inv(U[:3,:3])    
-        
-        self.C = 0.5*(Cest + Cest.T) 
-        
-        # Id = np.eye(3) 
-        # E11 = np.array([[1., 1., 0.], [1., 1., 0.], [0., 0., 0.]])
-        
-        # b1 = np.dot(Cest.flatten(), Id.flatten())
-        # b2 = np.dot(Cest.flatten(), E11.flatten())
-        
-        # lamb = (3*b1 - 2*b2)/8
-        # mu = (2*b2 - b1)/8
-        
-        # self.C = lamb*E11 + 2*mu*Id
-    
-        return self.C
-    
-            
-
     def read_data(self, filename):
         file = open(filename,'r')
         fmt = float(file.readline())
@@ -105,8 +53,8 @@ class DDMaterial:
         return data
 
     def write_data(self, datafile):
-        np.savetxt(datafile, self.DB, header = '1.0 \n%d 2 3 3'%Nd, comments = '', fmt='%.8e', )
-
+        np.savetxt(datafile, self.DB, comments = '', fmt='%.8e', 
+                   header = '1.0 \n%d 2 %d %d'%(len(self.DB), self.strain_dim, self.strain_dim) )
 
     def addZeroState(self):
         # add zero to database
@@ -118,7 +66,8 @@ class DDMaterial:
         np.random.seed(seed)
         np.random.shuffle(self.DB) # along the axis = 0    
         
-        
+    
+    # only for 2d
     def plotDB(self, namefig = None):
 
         color = lambda d : np.linspace(1,d.shape[0],d.shape[0])

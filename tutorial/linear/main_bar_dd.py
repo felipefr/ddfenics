@@ -3,7 +3,7 @@
 
 # 0) **Imports**
 
-# In[30]:
+# In[1]:
 
 
 import os, sys
@@ -12,11 +12,12 @@ import dolfin as df # Fenics : dolfin + ufl + FIAT + ...
 import numpy as np
 import matplotlib.pyplot as plt
 import copy 
+import fetricks as ft
 
 
 # 1) **Consititutive behaviour Definition**
 
-# In[54]:
+# In[2]:
 
 
 # fetricks is a set of utilitary functions to facilitate our lives
@@ -47,13 +48,10 @@ ddmat = DDMaterial(database_file)  # replaces sigma_law = lambda u : ...
 
 ddmat.plotDB()
 
-print("Error C estimation (SVD):", np.linalg.norm(Cmat - ddmat.C)/np.linalg.norm(Cmat))
-assert np.allclose(Cmat, ddmat.C,atol = 1.e-7)
-
 
 # 2) **Mesh** (Unchanged) 
 
-# In[27]:
+# In[3]:
 
 
 Nx =  50 # x10
@@ -66,7 +64,7 @@ df.plot(mesh);
 
 # 3) **Mesh regions** (Unchanged)
 
-# In[28]:
+# In[4]:
 
 
 leftBnd = df.CompiledSubDomain('near(x[0], 0.0) && on_boundary')
@@ -84,14 +82,19 @@ ds = df.Measure('ds', domain=mesh, subdomain_data=boundary_markers)
 
 # 4) **Spaces** (Unchanged)
 
-# In[29]:
+# In[5]:
 
+
+from ddfenics.dd.ddspace import DDSpace
 
 Uh = df.VectorFunctionSpace(mesh, "Lagrange", 1) # Unchanged
 bcL = df.DirichletBC(Uh, df.Constant((0.0, 0.0)), boundary_markers, clampedBndFlag) # Unchanged
 
 # Space for stresses and strains
-Sh0 = df.VectorFunctionSpace(mesh, 'DG', degree = 0 , dim = 3) 
+# Sh0 = df.VectorFunctionSpace(mesh, 'DG', degree = 0 , dim = 3) 
+Sh0 = DDSpace(Uh, 3, 'DG') 
+
+spaces = [Uh, Sh0]
 
 
 # 5) **Variational Formulation**: <br>
@@ -121,20 +124,13 @@ Sh0 = df.VectorFunctionSpace(mesh, 'DG', degree = 0 , dim = 3)
 # $$
 # - DD ''bilinear'' form : $(\bullet , \nabla^s v)$ or sometimes  $(\mathbb{C} \nabla^s \bullet, \nabla^s v)$ 
 
-# In[55]:
+# In[6]:
 
-
-from ddfenics.dd.ddbilinear import DDBilinear
 
 # Unchanged
 ty = -0.1
 traction = df.Constant((0.0, ty))
-
-u = df.TrialFunction(Uh) 
-v = df.TestFunction(Uh)
-b = df.inner(traction,v)*ds(loadBndFlag)
-
-a = DDBilinear(ddmat, dx, u, v) # replaces df.inner(sig(u) , df.grad(v))*dx
+b = lambda v: df.inner(traction,v)*ds(loadBndFlag)
 
 
 # 6) **Statement and Solving the problem** <br> 
@@ -142,24 +138,23 @@ a = DDBilinear(ddmat, dx, u, v) # replaces df.inner(sig(u) , df.grad(v))*dx
 # - DDSolver : Implements the alternate minimization using SKlearn NearestNeighbors('ball_tree', ...) searchs for the projection onto data.
 # - Stopping criteria: $\|d_k - d_{k-1}\|/energy$
 
-# In[62]:
+# In[10]:
 
 
 from ddfenics.dd.ddfunction import DDFunction
 from ddfenics.dd.ddmetric import DDMetric
-from ddfenics.dd.ddproblem import DDProblem
+from ddfenics.dd.ddproblem_infinitesimalstrain import DDProblemInfinitesimalStrain as DDProblem
 from ddfenics.dd.ddsolver import DDSolver
 
-# Extended solution : replaces u = df.Function(Uh)
-sol = {"state_mech" : [DDFunction(Sh0), DDFunction(Sh0)], # mechanical states (eps, sig)
-       "state_db": [DDFunction(Sh0), DDFunction(Sh0)],  # database states (eps, sig)
-       "u" : df.Function(Uh)} # displacemens
-
 # DD global and local distance
-dddist = DDMetric(ddmat.C, V = Sh0, dx = dx)
+dddist = DDMetric(ddmat = ddmat, V = Sh0, dx = dx)
+print("Error C estimation (SVD):", np.linalg.norm(Cmat - dddist.C)/np.linalg.norm(Cmat))
+assert np.allclose(Cmat, dddist.C,atol = 1.e-7)
+
 
 # replaces df.LinearVariationalProblem(a, b, uh, bcs = [bcL])
-problem = DDProblem(a, b, sol, [bcL], metric = dddist) 
+problem = DDProblem(ddmat, ft.symgrad_mandel, b, spaces, [bcL], metric = dddist) 
+sol = problem.get_sol()
 
 start = timer()
 
@@ -178,7 +173,7 @@ print("Time spent: ", end - start)
 print("Norm L2: ", normL2)
 print("Norm energy: ", norm_energy)
 
-assert np.allclose(normL2, 0.0027947522851385622)
+assert np.allclose(normL2, 0.0021970391402506245)
 assert np.allclose(norm_energy, 0.005346914742672427)
 
 
@@ -186,7 +181,7 @@ assert np.allclose(norm_energy, 0.005346914742672427)
 
 # a) *Minimisation*
 
-# In[57]:
+# In[11]:
 
 
 hist = solver.hist
@@ -215,7 +210,7 @@ plt.grid()
 
 # b) *Data Convergence*
 
-# In[9]:
+# In[14]:
 
 
 relative_norm = lambda x1, x0: np.sqrt(df.assemble( df.inner(x1 - x0, x1 - x0)*dx ) )/np.sqrt(df.assemble( df.inner(x0, x0)*dx ) )
@@ -240,14 +235,9 @@ for Nd_i in Nd_list:
     np.random.shuffle(indexes)
     DD_i = DD[indexes[:Nd_i], : , : ]
     ddmat_i = DDMaterial(DD_i)
-    
-    a_i = DDBilinear(ddmat_i, dx, u, v) 
-
-    sol_i = {"state_mech" : [DDFunction(Sh0), DDFunction(Sh0)], # mechanical states (eps, sig)
-           "state_db": [DDFunction(Sh0), DDFunction(Sh0)],  # database states (eps, sig)
-           "u" : df.Function(Uh)} # displacemens
-    
-    problem_i = DDProblem(a_i, b, sol_i, [bcL], metric = DDMetric(ddmat_i.C, V = Sh0, dx = dx)) 
+    metric_i = DDMetric(ddmat = ddmat_i, V = Sh0, dx = dx)
+    problem_i = DDProblem(ddmat_i, ft.symgrad_mandel, b, spaces, [bcL], metric = metric_i) 
+    sol_i = problem_i.get_sol()
     solver_i = DDSolver(problem_i, opInit = 'random', seed = 1)
     solver_i.solve(tol = tol_ddcm, maxit = 100)
     
@@ -279,6 +269,13 @@ plt.xlabel('Nd')
 plt.ylabel('Errors')
 plt.legend(loc = 'best')
 plt.grid()
+
+
+print(error_u[-1], error_eps[-1],error_sig[-1])
+
+assert np.allclose(error_u[-1], 0.10206168085265364)
+assert np.allclose(error_eps[-1], 0.15487664908434)
+assert np.allclose(error_sig[-1], 0.0853013784668318)
 
 
 # 8. **Sanity check:** : Recovering reference database

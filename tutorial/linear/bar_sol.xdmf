@@ -242,6 +242,21 @@
           <DataItem Dimensions="1000 1" NumberType="UInt" Format="HDF">bar_sol.h5:u/u_15/cells</DataItem>
         </Attribute>
       </Grid>
+      <Grid Name="u_16" GridType="Uniform">
+        <Topology NumberOfElements="1000" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="1000 3" NumberType="UInt" Format="HDF">bar_sol.h5:u/u_16/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="561 2" Format="HDF">bar_sol.h5:u/u_16/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="CG" ElementDegree="1" ElementCell="triangle" Name="u" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="6000 1" NumberType="UInt" Format="HDF">bar_sol.h5:u/u_16/cell_dofs</DataItem>
+          <DataItem Dimensions="1122 1" NumberType="Float" Format="HDF">bar_sol.h5:u/u_16/vector</DataItem>
+          <DataItem Dimensions="1001 1" NumberType="UInt" Format="HDF">bar_sol.h5:u/u_16/x_cell_dofs</DataItem>
+          <DataItem Dimensions="1000 1" NumberType="UInt" Format="HDF">bar_sol.h5:u/u_16/cells</DataItem>
+        </Attribute>
+      </Grid>
     </Grid>
     <Grid GridType="Collection" CollectionType="Temporal" Name="eps-0">
       <Grid Name="eps-0_0" GridType="Uniform">
@@ -781,6 +796,21 @@
           <DataItem Dimensions="1000 1" NumberType="UInt" Format="HDF">bar_sol.h5:eps/eps_10/cells</DataItem>
         </Attribute>
       </Grid>
+      <Grid Name="eps_11" GridType="Uniform">
+        <Topology NumberOfElements="1000" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="1000 3" NumberType="UInt" Format="HDF">bar_sol.h5:eps/eps_11/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="561 2" Format="HDF">bar_sol.h5:eps/eps_11/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="triangle" Name="eps" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="3000 1" NumberType="UInt" Format="HDF">bar_sol.h5:eps/eps_11/cell_dofs</DataItem>
+          <DataItem Dimensions="3000 1" NumberType="Float" Format="HDF">bar_sol.h5:eps/eps_11/vector</DataItem>
+          <DataItem Dimensions="1001 1" NumberType="UInt" Format="HDF">bar_sol.h5:eps/eps_11/x_cell_dofs</DataItem>
+          <DataItem Dimensions="1000 1" NumberType="UInt" Format="HDF">bar_sol.h5:eps/eps_11/cells</DataItem>
+        </Attribute>
+      </Grid>
     </Grid>
     <Grid GridType="Collection" CollectionType="Temporal" Name="sig">
       <Grid Name="sig_0" GridType="Uniform">
@@ -946,6 +976,21 @@
           <DataItem Dimensions="3000 1" NumberType="Float" Format="HDF">bar_sol.h5:sig/sig_10/vector</DataItem>
           <DataItem Dimensions="1001 1" NumberType="UInt" Format="HDF">bar_sol.h5:sig/sig_10/x_cell_dofs</DataItem>
           <DataItem Dimensions="1000 1" NumberType="UInt" Format="HDF">bar_sol.h5:sig/sig_10/cells</DataItem>
+        </Attribute>
+      </Grid>
+      <Grid Name="sig_11" GridType="Uniform">
+        <Topology NumberOfElements="1000" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="1000 3" NumberType="UInt" Format="HDF">bar_sol.h5:sig/sig_11/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="561 2" Format="HDF">bar_sol.h5:sig/sig_11/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="triangle" Name="sig" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="3000 1" NumberType="UInt" Format="HDF">bar_sol.h5:sig/sig_11/cell_dofs</DataItem>
+          <DataItem Dimensions="3000 1" NumberType="Float" Format="HDF">bar_sol.h5:sig/sig_11/vector</DataItem>
+          <DataItem Dimensions="1001 1" NumberType="UInt" Format="HDF">bar_sol.h5:sig/sig_11/x_cell_dofs</DataItem>
+          <DataItem Dimensions="1000 1" NumberType="UInt" Format="HDF">bar_sol.h5:sig/sig_11/cells</DataItem>
         </Attribute>
       </Grid>
     </Grid>

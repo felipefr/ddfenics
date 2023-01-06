@@ -2,7 +2,8 @@
 # DDFenics
 A (model-free) Data-driven implementation based on fenics (https://github.com/felipefr/ddfenics).
 
-## Tutorial DDFenics at CISM's minicourse Data-driven Mechanics, Udine, Italy (2022) 
+## Getting started
+### Tutorials DDFenics 
 Aim: Solve a simple 2D bar problem using standard Fenics and DDFenics.
 - 1) 2D bar (linear elastic) in FEniCs: tutorial/linear/main_bar.ipynb
 - 2) 2D bar (linear elastic) in DDFenics (Hands-on): tutorial/linear/main_bar_dd_to_fill.ipynb
