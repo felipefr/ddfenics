@@ -12,19 +12,19 @@ import dolfin as df # Fenics : dolfin + ufl + FIAT + ...
 import numpy as np
 import matplotlib.pyplot as plt
 import copy 
+import fetricks as ft
 
 # DDfenics imports
 from ddfenics.dd.ddmaterial import DDMaterial 
 from ddfenics.dd.ddmetric import DDMetric
 from ddfenics.dd.ddfunction import DDFunction
-from ddfenics.dd.ddbilinear import DDBilinear
-from ddfenics.dd.ddproblem import DDProblem
+from ddfenics.dd.ddproblem_infinitesimalstrain import DDProblemInfinitesimalStrain as DDProblem
 from ddfenics.dd.ddsolver import DDSolver
 
 
 # 1) **Consititutive behaviour Definition**
 
-# In[37]:
+# In[2]:
 
 
 # fetricks is a set of utilitary functions to facilitate our lives
@@ -60,7 +60,7 @@ ddmat.plotDB()
 
 # 2) **Mesh** (Unchanged) 
 
-# In[38]:
+# In[3]:
 
 
 Nx =  50 # x10
@@ -75,7 +75,7 @@ df.plot(mesh);
 
 # 3) **Mesh regions** (Unchanged)
 
-# In[39]:
+# In[4]:
 
 
 leftBnd = df.CompiledSubDomain('near(x[0], 0.0) && on_boundary')
@@ -93,14 +93,19 @@ ds = df.Measure('ds', domain=mesh, subdomain_data=boundary_markers)
 
 # 4) **Spaces**
 
-# In[40]:
+# In[5]:
 
+
+from ddfenics.dd.ddspace import DDSpace
 
 Uh = df.VectorFunctionSpace(mesh, "Lagrange", 1) # Unchanged
 bcL = df.DirichletBC(Uh, df.Constant((0.0, 0.0)), boundary_markers, clampedBndFlag) # Unchanged
 
 # Space for stresses and strains
-Sh0 = df.VectorFunctionSpace(mesh, 'DG', degree = 0 , dim = 3) 
+Sh0 = DDSpace(Uh, 3 , 'DG') 
+# Sh0 = df.VectorFunctionSpace(mesh, 'DG', degree = 0 , dim = 3) 
+
+spaces = [Uh, Sh0]
 
 
 # 5) **Variational Formulation**: <br>
@@ -130,18 +135,14 @@ Sh0 = df.VectorFunctionSpace(mesh, 'DG', degree = 0 , dim = 3)
 # $$
 # - DD ''bilinear'' form : $(\bullet , \nabla^s v)$ or sometimes  $(\mathbb{C} \nabla^s \bullet, \nabla^s v)$ 
 
-# In[41]:
+# In[6]:
 
 
 # Unchanged
 ty = -0.1
 traction = df.Constant((0.0, ty))
 
-u = df.TrialFunction(Uh) 
-v = df.TestFunction(Uh)
-b = df.inner(traction,v)*ds(loadBndFlag)
-
-a = DDBilinear(ddmat, dx, u, v) # replaces df.inner(sig(u) , df.grad(v))*dx
+b = lambda w: df.inner(traction,w)*ds(loadBndFlag)
 
 
 # 6) **Statement and Solving the problem** <br> 
@@ -149,16 +150,13 @@ a = DDBilinear(ddmat, dx, u, v) # replaces df.inner(sig(u) , df.grad(v))*dx
 # - DDSolver : Implements the alternate minimization using SKlearn NearestNeighbors('ball_tree', ...) searchs for the projection onto data.
 # - Stopping criteria: $\|d_k - d_{k-1}\|/energy$
 
-# In[46]:
+# In[7]:
 
-
-# Extended solution : replaces u = df.Function(Uh)
-sol = {"state_mech" : [DDFunction(Sh0), DDFunction(Sh0)], # mechanical states (eps, sig)
-       "state_db": [DDFunction(Sh0), DDFunction(Sh0)],  # database states (eps, sig)
-       "u" : df.Function(Uh)} # displacemens
 
 # replaces df.LinearVariationalProblem(a, b, uh, bcs = [bcL])
-problem = DDProblem(a, b, sol, [bcL], metric = DDMetric(ddmat.C, V = Sh0, dx = dx)) 
+metric = DDMetric(ddmat = ddmat, V = Sh0, dx = dx)
+problem = DDProblem(ddmat, ft.symgrad_mandel, b, spaces, [bcL], metric = metric ) 
+sol = problem.get_sol()
 
 start = timer()
 #replaces df.LinearVariationalSolver(problem)
@@ -177,7 +175,7 @@ print("Norm L2: ", normL2)
 print("Norm energy: ", norm_energy)
 
 # Convergence in 21 iterations
-assert np.allclose(normL2, 0.0004446689139178057)
+assert np.allclose(normL2, 0.00044305280541032056)
 assert np.allclose(norm_energy, 0.0021931246408032315)
 
 
@@ -185,12 +183,12 @@ assert np.allclose(norm_energy, 0.0021931246408032315)
 
 # a) *Convergence*
 
-# In[36]:
+# In[8]:
 
 
 hist = solver.hist
 
-fig = plt.figure(1)
+fig = plt.figure(2)
 plt.title('Minimisation')
 plt.plot(hist['relative_energy'], 'o-')
 plt.xlabel('iterations')
@@ -199,7 +197,7 @@ plt.legend(loc = 'best')
 plt.yscale('log')
 plt.grid()
 
-fig = plt.figure(2)
+fig = plt.figure(3)
 plt.title('Relative distance (wrt k-th iteration)')
 plt.plot(hist['relative_distance'], 'o-', label = "relative_distance")
 plt.plot([0,len(hist['relative_energy'])],[tol_ddcm,tol_ddcm])
@@ -210,11 +208,33 @@ plt.legend(loc = 'best')
 plt.grid()
 
 
+# b) *scatter plot*
+
+# In[9]:
+
+
+state_mech = sol["state_mech"]
+state_db = sol["state_db"]
+
+fig,(ax1,ax2) = plt.subplots(1,2)
+ax1.set_xlabel(r'$\epsilon_{xx}+\epsilon_{yy}$')
+ax1.set_ylabel(r'$\sigma_{xx}+\sigma_{yy}$')
+ax1.scatter(ddmat.DB[:, 0, 0] + ddmat.DB[:, 0, 1], ddmat.DB[:, 1, 0] + ddmat.DB[:, 1, 1], c='gray')
+ax1.scatter(state_db[0].data()[:,0]+state_db[0].data()[:,1],state_db[1].data()[:,0]+state_db[1].data()[:,1], c='blue')
+ax1.scatter(state_mech[0].data()[:,0]+state_mech[0].data()[:,1],state_mech[1].data()[:,0]+state_mech[1].data()[:,1], marker = 'x', c='black' )
+
+ax2.set_xlabel(r'$\epsilon_{xy}$')
+ax2.set_ylabel(r'$\sigma_{xy}$')
+ax2.scatter(ddmat.DB[:, 0, 2], ddmat.DB[:, 1, 2], c='gray')
+ax2.scatter(state_db[0].data()[:,2], state_db[1].data()[:,2], c='blue')
+ax2.scatter(state_mech[0].data()[:,2], state_mech[1].data()[:,2], marker = 'x', c='black')
+
+
 #  
 
 # c) *Convergence with data*
 
-# In[49]:
+# In[10]:
 
 
 relative_norm = lambda x1, x0: np.sqrt(df.assemble( df.inner(x1 - x0, x1 - x0)*dx ) )/np.sqrt(df.assemble( df.inner(x0, x0)*dx ) )
@@ -239,19 +259,14 @@ for Nd_i in Nd_list:
     np.random.shuffle(indexes)
     DD_i = DD[indexes[:Nd_i], : , : ]
     ddmat_i = DDMaterial(DD_i)
-    
-    a_i = DDBilinear(ddmat_i, dx, u, v) 
-
-    sol_i = {"state_mech" : [DDFunction(Sh0), DDFunction(Sh0)], # mechanical states (eps, sig)
-           "state_db": [DDFunction(Sh0), DDFunction(Sh0)],  # database states (eps, sig)
-           "u" : df.Function(Uh)} # displacemens
-    
-    problem_i = DDProblem(a_i, b, sol_i, [bcL], metric = DDMetric(ddmat_i.C, V = Sh0, dx = dx)) 
-    solver_i = DDSolver(problem_i, opInit = 'random', seed = 1)
+    metric_i = DDMetric(ddmat = ddmat_i, V = Sh0, dx = dx)
+    problem_i = DDProblem(ddmat_i, ft.symgrad_mandel, b, spaces, [bcL], metric = metric_i) 
+    sol_i = problem_i.get_sol()
+    solver_i = DDSolver(problem_i, opInit = 'zero', seed = 1)
     solver_i.solve(tol = tol_ddcm, maxit = 100)
     
     hist_list.append(copy.deepcopy(solver_i.hist))
-    
+ 
     error_u.append(relative_norm(sol_i["u"], sol_ref["u"])) 
     error_eps.append(relative_norm(sol_i["state_mech"][0], sol_ref["state"][0])) 
     error_sig.append(relative_norm(sol_i["state_mech"][1], sol_ref["state"][1]))
@@ -279,42 +294,21 @@ plt.ylabel('Errors')
 plt.legend(loc = 'best')
 plt.grid()
 
+
 print(error_u[-1], error_eps[-1],error_sig[-1])
 
-assert np.allclose(error_u[-1], 0.006159991348446799)
-assert np.allclose(error_eps[-1], 0.0413735788047132)
-assert np.allclose(error_sig[-1],0.014108344008606123)
-
-
-# d) *sanity check*
-
-# In[50]:
-
-
-state_mech = sol["state_mech"]
-state_db = sol["state_db"]
-
-fig,(ax1,ax2) = plt.subplots(1,2)
-ax1.set_xlabel(r'$\epsilon_{xx}+\epsilon_{yy}$')
-ax1.set_ylabel(r'$\sigma_{xx}+\sigma_{yy}$')
-ax1.scatter(ddmat.DB[:, 0, 0] + ddmat.DB[:, 0, 1], ddmat.DB[:, 1, 0] + ddmat.DB[:, 1, 1], c='gray')
-ax1.scatter(state_db[0].data()[:,0]+state_db[0].data()[:,1],state_db[1].data()[:,0]+state_db[1].data()[:,1], c='blue')
-ax1.scatter(state_mech[0].data()[:,0]+state_mech[0].data()[:,1],state_mech[1].data()[:,0]+state_mech[1].data()[:,1], marker = 'x', c='black' )
-
-ax2.set_xlabel(r'$\epsilon_{xy}$')
-ax2.set_ylabel(r'$\sigma_{xy}$')
-ax2.scatter(ddmat.DB[:, 0, 2], ddmat.DB[:, 1, 2], c='gray')
-ax2.scatter(state_db[0].data()[:,2], state_db[1].data()[:,2], c='blue')
-ax2.scatter(state_mech[0].data()[:,2], state_mech[1].data()[:,2], marker = 'x', c='black')
+assert np.allclose(error_u[-1], 0.007970813663792299)
+assert np.allclose(error_eps[-1], 0.041373578804711535)
+assert np.allclose(error_sig[-1], 0.014108344008671543)
 
 
 # 8. **Sanity check:** : Recovering reference database
 
-# In[29]:
+# In[11]:
 
 
 # After re-execute blocks 5 and 6, the error should be zero machine
-# Still, it's not possible to get error zero-machine precision
+# Still, it's not possible to get error zero-machine precision
 from ddfenics.dd.ddfunction import DDFunction
 
 data = np.concatenate((sol_ref["state"][0].vector().get_local().reshape((-1,3)), 
@@ -327,10 +321,4 @@ print(np.max(data[:,:3], axis = 0) )
 np.savetxt('database_ref.txt', data, header = '1.0 \n%d 2 3 3'%data.shape[0], comments = '', fmt='%.8e')
 ddmat = DDMaterial('database_ref.txt') 
 ddmat.plotDB()
-
-
-# In[ ]:
-
-
-
 

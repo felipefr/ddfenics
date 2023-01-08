@@ -26,7 +26,7 @@ from ddfenics.dd.ddmaterial import DDMaterial
 
 database_file = 'database_generated.txt'
 
-Nd = 100 # number of points
+Nd = 100000 # number of points
 noise = 0.0
 eps_range = np.array([[-0.03,0.03], [-0.009, 0.009], [-0.012, 0.002]]).T
 E = 100.0
@@ -59,7 +59,7 @@ Ny =  10 # x10
 Lx = 2.0
 Ly = 0.5
 mesh = df.RectangleMesh(df.Point(0.0,0.0) , df.Point(Lx,Ly), Nx, Ny, 'left/right');
-df.plot(mesh);
+# df.plot(mesh);
 
 
 # 3) **Mesh regions** (Unchanged)
@@ -138,7 +138,7 @@ b = lambda v: df.inner(traction,v)*ds(loadBndFlag)
 # - DDSolver : Implements the alternate minimization using SKlearn NearestNeighbors('ball_tree', ...) searchs for the projection onto data.
 # - Stopping criteria: $\|d_k - d_{k-1}\|/energy$
 
-# In[10]:
+# In[8]:
 
 
 from ddfenics.dd.ddfunction import DDFunction
@@ -173,20 +173,20 @@ print("Time spent: ", end - start)
 print("Norm L2: ", normL2)
 print("Norm energy: ", norm_energy)
 
-assert np.allclose(normL2, 0.0021970391402506245)
-assert np.allclose(norm_energy, 0.005346914742672427)
+assert np.allclose(normL2, 0.0033714383487846397)
+assert np.allclose(norm_energy, 0.005907312062796587)
 
 
 # 7) **Plotting**
 
 # a) *Minimisation*
 
-# In[11]:
+# In[9]:
 
 
 hist = solver.hist
 
-fig = plt.figure(1)
+fig = plt.figure(2)
 plt.title('Minimisation')
 plt.plot(hist['relative_energy'], 'o-')
 plt.xlabel('iterations')
@@ -195,7 +195,7 @@ plt.legend(loc = 'best')
 plt.yscale('log')
 plt.grid()
 
-fig = plt.figure(2)
+fig = plt.figure(3)
 plt.title('Relative distance (wrt k-th iteration)')
 plt.plot(hist['relative_distance'], 'o-', label = "relative_distance")
 plt.plot([0,len(hist['relative_energy'])],[tol_ddcm,tol_ddcm], label = "threshold")
@@ -210,7 +210,7 @@ plt.grid()
 
 # b) *Data Convergence*
 
-# In[14]:
+# In[11]:
 
 
 relative_norm = lambda x1, x0: np.sqrt(df.assemble( df.inner(x1 - x0, x1 - x0)*dx ) )/np.sqrt(df.assemble( df.inner(x0, x0)*dx ) )
@@ -273,14 +273,14 @@ plt.grid()
 
 print(error_u[-1], error_eps[-1],error_sig[-1])
 
-assert np.allclose(error_u[-1], 0.10206168085265364)
-assert np.allclose(error_eps[-1], 0.15487664908434)
-assert np.allclose(error_sig[-1], 0.0853013784668318)
+assert np.allclose(error_u[-1], 0.013566673395658388 )
+assert np.allclose(error_eps[-1], 0.01698719223058678)
+assert np.allclose(error_sig[-1], 0.0182781593410489)
 
 
-# 8. **Sanity check:** : Recovering reference database
+# 8. **Sanity check:** : Exporting reference database and after re-execute block 6, the error should be zero machine.
 
-# In[21]:
+# In[12]:
 
 
 from ddfenics.dd.ddfunction import DDFunction
@@ -295,11 +295,4 @@ print(np.max(data[:,:3], axis = 0) )
 np.savetxt('database_ref.txt', data, header = '1.0 \n%d 2 3 3'%data.shape[0], comments = '', fmt='%.8e')
 ddmat = DDMaterial('database_ref.txt') 
 ddmat.plotDB()
-# After re-execute blocks 5 and 6, the error should be zero machine
-
-
-# In[ ]:
-
-
-
 
