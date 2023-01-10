@@ -14,7 +14,7 @@ from ddfenics.dd.ddfunction import DDFunction
 
 class DDProblemBase:
     
-    def __init__(self, ddmat, grad, L, spaces, bcs, metric,  
+    def __init__(self, spaces, grad, L, bcs, metric,  
                  form_compiler_parameters = {}, bcsPF = []):
     
         self.Uh, self.Sh = spaces 
@@ -22,9 +22,9 @@ class DDProblemBase:
         
         self.z_mech = [DDFunction(self.Sh), DDFunction(self.Sh)] 
         self.z_db = [DDFunction(self.Sh), DDFunction(self.Sh)] 
+        self.strain_dim = self.Sh.num_sub_spaces()
         
         self.L = L
-        self.ddmat = ddmat
         self.grad = grad
         self.dx = self.Sh.dxm
         self.bcs = bcs
@@ -32,9 +32,6 @@ class DDProblemBase:
         
         self.C = self.metric.C_fe
         self.Cinv = self.metric.Cinv_fe
-                
-        self.DB = self.ddmat.DB.view()
-        self.Nd = self.DB.shape[0]
     
         self.solver, self.z = self.create_problem()
      
@@ -63,10 +60,9 @@ class DDProblemBase:
         for i, z_i in enumerate(self.z_mech):
             z_i.update(state_update[i])
             
-    def update_state_db(self, map):
-        Nmap = len(map)        
+    def update_state_db(self, state_db):
         for i, z_i in enumerate(self.z_db):
-            z_i.update(self.DB[map,i,:].reshape((Nmap,-1)))
+            z_i.update(state_db[:,i,:].reshape((-1,self.strain_dim)))
             
 
     def get_state_mech_data(self):

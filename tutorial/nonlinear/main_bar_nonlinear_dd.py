@@ -155,12 +155,12 @@ b = lambda w: df.inner(traction,w)*ds(loadBndFlag)
 
 # replaces df.LinearVariationalProblem(a, b, uh, bcs = [bcL])
 metric = DDMetric(ddmat = ddmat, V = Sh0, dx = dx)
-problem = DDProblem(ddmat, ft.symgrad_mandel, b, spaces, [bcL], metric = metric ) 
+problem = DDProblem(spaces, ft.symgrad_mandel, b, [bcL], metric = metric ) 
 sol = problem.get_sol()
 
 start = timer()
 #replaces df.LinearVariationalSolver(problem)
-solver = DDSolver(problem, opInit = 'zero')
+solver = DDSolver(problem, ddmat, opInit = 'zero')
 tol_ddcm = 1e-7
 hist = solver.solve(tol = tol_ddcm, maxit = 100);
 
@@ -260,9 +260,9 @@ for Nd_i in Nd_list:
     DD_i = DD[indexes[:Nd_i], : , : ]
     ddmat_i = DDMaterial(DD_i)
     metric_i = DDMetric(ddmat = ddmat_i, V = Sh0, dx = dx)
-    problem_i = DDProblem(ddmat_i, ft.symgrad_mandel, b, spaces, [bcL], metric = metric_i) 
+    problem_i = DDProblem(spaces, ft.symgrad_mandel, b, [bcL], metric = metric_i) 
     sol_i = problem_i.get_sol()
-    solver_i = DDSolver(problem_i, opInit = 'zero', seed = 1)
+    solver_i = DDSolver(problem_i, ddmat, opInit = 'zero', seed = 1)
     solver_i.solve(tol = tol_ddcm, maxit = 100)
     
     hist_list.append(copy.deepcopy(solver_i.hist))

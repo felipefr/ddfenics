@@ -11,7 +11,6 @@ from timeit import default_timer as timer
 import dolfin as df # Fenics : dolfin + ufl + FIAT + ...
 import numpy as np
 import matplotlib.pyplot as plt
-import copy 
 import fetricks as ft
 
 
@@ -128,9 +127,22 @@ spaces = [Uh, Sh0]
 
 
 # Unchanged
+uh = df.TrialFunction(Uh)
+vh = df.TestFunction(Uh)
+
 ty = -0.1
 traction = df.Constant((0.0, ty))
-b = lambda v: df.inner(traction,v)*ds(loadBndFlag)
+b = df.inner(traction,vh)*ds(loadBndFlag)
+
+# Changed
+from ddfenics.dd.ddmetric import DDMetric
+from ddfenics.dd.ddbilinear import DDBilinear
+
+dddist = DDMetric(ddmat = ddmat, V = Sh0, dx = dx)
+print("Error C estimation (SVD):", np.linalg.norm(Cmat - dddist.C)/np.linalg.norm(Cmat))
+assert np.allclose(Cmat, dddist.C,atol = 1.e-7)
+
+a = DDBilinear(dddist, ft.symgrad_mandel, uh, vh, dx)
 
 
 # 6) **Statement and Solving the problem** <br> 
@@ -138,22 +150,15 @@ b = lambda v: df.inner(traction,v)*ds(loadBndFlag)
 # - DDSolver : Implements the alternate minimization using SKlearn NearestNeighbors('ball_tree', ...) searchs for the projection onto data.
 # - Stopping criteria: $\|d_k - d_{k-1}\|/energy$
 
-# In[8]:
+# In[7]:
 
 
-from ddfenics.dd.ddfunction import DDFunction
-from ddfenics.dd.ddmetric import DDMetric
-from ddfenics.dd.ddproblem_infinitesimalstrain import DDProblemInfinitesimalStrain as DDProblem
+from ddfenics.dd.ddproblem_generic import DDProblemGeneric as DDProblem # Generic implementation
 from ddfenics.dd.ddsolver import DDSolver
 
-# DD global and local distance
-dddist = DDMetric(ddmat = ddmat, V = Sh0, dx = dx)
-print("Error C estimation (SVD):", np.linalg.norm(Cmat - dddist.C)/np.linalg.norm(Cmat))
-assert np.allclose(Cmat, dddist.C,atol = 1.e-7)
-
-
 # replaces df.LinearVariationalProblem(a, b, uh, bcs = [bcL])
-problem = DDProblem(spaces, ft.symgrad_mandel, b, [bcL], metric = dddist) 
+problem = DDProblem(spaces, ft.symgrad_mandel, a, b, [bcL], metric = dddist) 
+
 sol = problem.get_sol()
 
 start = timer()
@@ -181,7 +186,7 @@ assert np.allclose(norm_energy, 0.005907312062796587)
 
 # a) *Minimisation*
 
-# In[9]:
+# In[ ]:
 
 
 hist = solver.hist
@@ -207,92 +212,3 @@ plt.grid()
 
 
 #  
-
-# b) *Data Convergence*
-
-# In[11]:
-
-
-relative_norm = lambda x1, x0: np.sqrt(df.assemble( df.inner(x1 - x0, x1 - x0)*dx ) )/np.sqrt(df.assemble( df.inner(x0, x0)*dx ) )
-
-Nd_list = [10,100, 1000, 10000, 50000, 100000] 
-hist_list = []
-error_u = []
-error_eps = []
-error_sig = []
-
-sol_ref_file =  df.XDMFFile("bar_sol.xdmf")
-sol_ref = {"state" : [DDFunction(Sh0), DDFunction(Sh0)], "u" : df.Function(Uh)}   
-sol_ref_file.read_checkpoint(sol_ref["u"],"u")
-sol_ref_file.read_checkpoint(sol_ref["state"][0],"eps")
-sol_ref_file.read_checkpoint(sol_ref["state"][1],"sig")
-
-np.random.seed(1)
-
-
-for Nd_i in Nd_list:
-    indexes = np.arange(0,Nd).astype('int')
-    np.random.shuffle(indexes)
-    DD_i = DD[indexes[:Nd_i], : , : ]
-    ddmat_i = DDMaterial(DD_i)
-    metric_i = DDMetric(ddmat = ddmat_i, V = Sh0, dx = dx)
-    problem_i = DDProblem(spaces, ft.symgrad_mandel, b, [bcL], metric = metric_i) 
-    sol_i = problem_i.get_sol()
-    solver_i = DDSolver(problem_i, ddmat_i, opInit = 'random', seed = 1)
-    solver_i.solve(tol = tol_ddcm, maxit = 100)
-    
-    hist_list.append(copy.deepcopy(solver_i.hist))
-    
-    error_u.append(relative_norm(sol_i["u"], sol_ref["u"])) 
-    error_eps.append(relative_norm(sol_i["state_mech"][0], sol_ref["state"][0])) 
-    error_sig.append(relative_norm(sol_i["state_mech"][1], sol_ref["state"][1]))
-    
-    
-    
-plt.figure(5)
-plt.title('Energy gap VS database size')
-plt.plot(Nd_list, [hist_list[i]['relative_energy'][-1] for i in range(len(Nd_list))], '-o')
-plt.xscale('log')
-plt.yscale('log')
-plt.xlabel('Nd')
-plt.ylabel('energy gap')
-plt.grid()
-
-plt.figure(6)
-plt.title('Relative L2 errors VS database size (wrt classical solutions)')
-plt.plot(Nd_list, error_u, '-o', label = 'u')
-plt.plot(Nd_list, error_eps, '-o', label = 'eps')
-plt.plot(Nd_list, error_sig, '-o', label = 'sig')
-plt.xscale('log')
-plt.yscale('log')
-plt.xlabel('Nd')
-plt.ylabel('Errors')
-plt.legend(loc = 'best')
-plt.grid()
-
-
-print(error_u[-1], error_eps[-1],error_sig[-1])
-
-assert np.allclose(error_u[-1], 0.013566673395658388 )
-assert np.allclose(error_eps[-1], 0.01698719223058678)
-assert np.allclose(error_sig[-1], 0.0182781593410489)
-
-
-# 8. **Sanity check:** : Exporting reference database and after re-execute block 6, the error should be zero machine.
-
-# In[12]:
-
-
-from ddfenics.dd.ddfunction import DDFunction
-
-data = np.concatenate((sol_ref["state"][0].vector().get_local().reshape((-1,3)), 
-                       sol_ref["state"][1].vector().get_local().reshape((-1,3))), axis = 1)
-
-print(data.shape)
-print(np.min(data[:,:3], axis = 0) )
-print(np.max(data[:,:3], axis = 0) )
-
-np.savetxt('database_ref.txt', data, header = '1.0 \n%d 2 3 3'%data.shape[0], comments = '', fmt='%.8e')
-ddmat = DDMaterial('database_ref.txt') 
-ddmat.plotDB()
-

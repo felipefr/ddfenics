@@ -10,20 +10,24 @@ import dolfin as df
  
 class DDBilinear:
     
-    def __init__(self, ddmat, dx, uh, vh):
-        self.ddmat = ddmat
+    def __init__(self, metric, grad, uh, vh, dx):
+        self.C = metric.C_fe
+        self.grad = grad
         self.dx = dx
         self.uh = uh
         self.vh = vh    
-        self.a_gen = lambda X: df.inner( X , self.ddmat.grad(self.vh))*self.dx   
+        self.a_gen = lambda X: df.inner( X , self.grad(self.vh))*self.dx   
         
-        self.bilinear = self.action_disp(self.uh)
+        self.a_uv = self(self.uh)
         
-    def action_strain(self, e):
-        return self.a_gen(self.ddmat.sigC_e(e))
+    def eq_stress(self, q, op):
+        if(op == 'u'):
+            return df.dot(self.C,self.grad(q))
+        elif(op == 'strain'):
+            return self.C*q
+        elif(op == 'stress'):
+            return q
+            
+    def __call__(self, q, op = 'u'):
+        return self.a_gen(self.eq_stress(q,op))  
     
-    def action_stress(self, s):
-        return self.a_gen(s)
-
-    def action_disp(self, u):
-        return self.a_gen(self.ddmat.sigC(u))

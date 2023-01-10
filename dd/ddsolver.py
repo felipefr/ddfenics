@@ -16,10 +16,10 @@ from ddfenics.dd.ddmetric import DDMetric
 
 class DDSolver:
     
-    def __init__(self, problem, opInit = 'random', seed = 0):
+    def __init__(self, problem, ddmat, opInit = 'random', seed = 0):
                 
         self.problem = problem
-        self.DB = self.problem.ddmat.DB.view()
+        self.DB = ddmat.DB.view()
         
         # distance function
         self.metric = self.problem.metric
@@ -41,7 +41,7 @@ class DDSolver:
         self.calls_hist['distance'] = lambda m, m_ref, m0 : m
         self.calls_hist['relative_distance'] = lambda m, m_ref, m0 : np.abs(m-m0)/m_ref
         self.calls_hist['relative_energy'] = lambda m, m_ref, m0 : (m/m_ref)**2 
-        self.calls_hist['sizeDB'] = lambda m, m_ref, m0 : len(self.problem.ddmat.DB)
+        self.calls_hist['sizeDB'] = lambda m, m_ref, m0 : len(self.DB)
         self.calls_hist['classical_relative_energy'] = lambda m, m_ref, m0 : (self.metric_energy.dist_fenics(self.problem.z_mech, self.problem.z_db)/m_ref)**2.0
         
 
@@ -105,7 +105,7 @@ class DDSolver:
         start = timer()
         dist, distTree, self.map = self.metric.findNeighbours(self.problem.get_state_mech_data())
         end = timer()
-        self.problem.update_state_db(self.map[:,0])
+        self.problem.update_state_db(self.DB[self.map[:,0],:,:])
 
         return dist, distTree, end - start
 

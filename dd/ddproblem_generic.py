@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jan  6 00:20:39 2023
+Created on Tue Jan 10 23:26:49 2023
 
 @author: ffiguere
 """
@@ -17,11 +17,12 @@ import fetricks as ft
 
 import copy
 
-class DDProblemInfinitesimalStrain(DDProblemBase):
-    def __init__(self, spaces, grad, L, bcs, metric,  
+class DDProblemGeneric(DDProblemBase):
+    def __init__(self, spaces, grad, a, L, bcs, metric,  
                  form_compiler_parameters = {}, bcsPF = []):
     
-        super().__init__(spaces, grad, L, bcs, metric,  
+        self.a = a 
+        super().__init__(spaces, a.grad, L, bcs, metric,  
                      form_compiler_parameters, bcsPF)
         
         
@@ -33,16 +34,11 @@ class DDProblemInfinitesimalStrain(DDProblemBase):
         bcs_eta = [df.DirichletBC(b) for b in self.bcs] # creates a copy
         [b.homogenize() for b in bcs_eta]
         
-        uh = df.TrialFunction(self.Uh)
-        vh = df.TestFunction(self.Uh)
+        f_comp = self.a(self.z_db[0] , 'strain')     
+        f_bal = self.L - self.a(self.z_db[1] , 'stress')
         
-        a = df.inner(self.C*self.grad(uh), self.grad(vh))*self.dx
-        
-        f_comp = df.inner(self.C*self.z_db[0] , self.grad(vh))*self.dx     
-        f_bal = self.L(vh)  - df.inner(self.z_db[1], self.grad(vh))*self.dx
-        
-        self.problem_comp = df.LinearVariationalProblem(a, f_comp, self.u, self.bcs)
-        self.problem_bal = df.LinearVariationalProblem(a, f_bal, self.eta, bcs_eta)
+        self.problem_comp = df.LinearVariationalProblem(self.a.a_uv, f_comp, self.u, self.bcs)
+        self.problem_bal = df.LinearVariationalProblem(self.a.a_uv, f_bal, self.eta, bcs_eta)
         
         blocksolver = BlockSolver([self.problem_comp, self.problem_bal]) 
         z = [self.grad(self.u), self.z_db[1] + self.C*self.grad(self.eta)] # z_mech symbolic
