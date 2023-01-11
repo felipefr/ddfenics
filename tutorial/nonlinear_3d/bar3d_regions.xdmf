@@ -1,0 +1,16 @@
+<Xdmf Version="3.0">
+  <Domain>
+    <Grid Name="Grid">
+      <Information Name="Information" Value="0">&lt;main/&gt;</Information>
+      <Geometry GeometryType="XYZ">
+        <DataItem DataType="Float" Dimensions="1 3" Format="HDF" Precision="8">bar3d_regions.h5:/data0</DataItem>
+      </Geometry>
+      <Topology TopologyType="Tetrahedron" NumberOfElements="537">
+        <DataItem DataType="Int" Dimensions="537 4" Format="HDF" Precision="8">bar3d_regions.h5:/data1</DataItem>
+      </Topology>
+      <Attribute Name="regions" AttributeType="Scalar" Center="Cell">
+        <DataItem DataType="Int" Dimensions="537" Format="HDF" Precision="8">bar3d_regions.h5:/data2</DataItem>
+      </Attribute>
+    </Grid>
+  </Domain>
+</Xdmf>

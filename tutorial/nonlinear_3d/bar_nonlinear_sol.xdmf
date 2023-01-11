@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<Xdmf Version="3.0">
+  <Domain>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="u">
+      <Grid Name="u_0" GridType="Uniform">
+        <Topology NumberOfElements="537" TopologyType="Tetrahedron" NodesPerElement="4">
+          <DataItem Dimensions="537 4" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XYZ">
+          <DataItem Dimensions="193 3" Format="HDF">bar_nonlinear_sol.h5:u/u_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="CG" ElementDegree="1" ElementCell="tetrahedron" Name="u" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="6444 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_0/cell_dofs</DataItem>
+          <DataItem Dimensions="579 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:u/u_0/vector</DataItem>
+          <DataItem Dimensions="538 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="537 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+      <Grid Name="u_1" GridType="Uniform">
+        <Topology NumberOfElements="537" TopologyType="Tetrahedron" NodesPerElement="4">
+          <DataItem Dimensions="537 4" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_1/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XYZ">
+          <DataItem Dimensions="193 3" Format="HDF">bar_nonlinear_sol.h5:u/u_1/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="CG" ElementDegree="1" ElementCell="tetrahedron" Name="u" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="6444 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_1/cell_dofs</DataItem>
+          <DataItem Dimensions="579 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:u/u_1/vector</DataItem>
+          <DataItem Dimensions="538 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_1/x_cell_dofs</DataItem>
+          <DataItem Dimensions="537 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:u/u_1/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="eps">
+      <Grid Name="eps_0" GridType="Uniform">
+        <Topology NumberOfElements="537" TopologyType="Tetrahedron" NodesPerElement="4">
+          <DataItem Dimensions="537 4" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps/eps_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XYZ">
+          <DataItem Dimensions="193 3" Format="HDF">bar_nonlinear_sol.h5:eps/eps_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="tetrahedron" Name="eps" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="3222 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps/eps_0/cell_dofs</DataItem>
+          <DataItem Dimensions="3222 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:eps/eps_0/vector</DataItem>
+          <DataItem Dimensions="538 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps/eps_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="537 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps/eps_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+      <Grid Name="eps_1" GridType="Uniform">
+        <Topology NumberOfElements="537" TopologyType="Tetrahedron" NodesPerElement="4">
+          <DataItem Dimensions="537 4" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps/eps_1/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XYZ">
+          <DataItem Dimensions="193 3" Format="HDF">bar_nonlinear_sol.h5:eps/eps_1/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="tetrahedron" Name="eps" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="3222 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps/eps_1/cell_dofs</DataItem>
+          <DataItem Dimensions="3222 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:eps/eps_1/vector</DataItem>
+          <DataItem Dimensions="538 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps/eps_1/x_cell_dofs</DataItem>
+          <DataItem Dimensions="537 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:eps/eps_1/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="sig">
+      <Grid Name="sig_0" GridType="Uniform">
+        <Topology NumberOfElements="537" TopologyType="Tetrahedron" NodesPerElement="4">
+          <DataItem Dimensions="537 4" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig/sig_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XYZ">
+          <DataItem Dimensions="193 3" Format="HDF">bar_nonlinear_sol.h5:sig/sig_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="tetrahedron" Name="sig" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="3222 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig/sig_0/cell_dofs</DataItem>
+          <DataItem Dimensions="3222 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:sig/sig_0/vector</DataItem>
+          <DataItem Dimensions="538 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig/sig_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="537 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig/sig_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+      <Grid Name="sig_1" GridType="Uniform">
+        <Topology NumberOfElements="537" TopologyType="Tetrahedron" NodesPerElement="4">
+          <DataItem Dimensions="537 4" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig/sig_1/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XYZ">
+          <DataItem Dimensions="193 3" Format="HDF">bar_nonlinear_sol.h5:sig/sig_1/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="0" ElementCell="tetrahedron" Name="sig" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="3222 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig/sig_1/cell_dofs</DataItem>
+          <DataItem Dimensions="3222 1" NumberType="Float" Format="HDF">bar_nonlinear_sol.h5:sig/sig_1/vector</DataItem>
+          <DataItem Dimensions="538 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig/sig_1/x_cell_dofs</DataItem>
+          <DataItem Dimensions="537 1" NumberType="UInt" Format="HDF">bar_nonlinear_sol.h5:sig/sig_1/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+  </Domain>
+</Xdmf>

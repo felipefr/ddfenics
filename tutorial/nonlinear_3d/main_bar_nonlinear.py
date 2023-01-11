@@ -92,5 +92,7 @@ iofe.exportXDMF_gen("bar_nonlinear_vtk.xdmf", fields={'vertex': [uh], 'cell_vect
 iofe.exportXDMF_checkpoint_gen("bar_nonlinear_sol.xdmf", fields={'vertex': [uh], 'cell': [epsh, sigh]})
 
 
+print(epsh.vector().get_local().reshape((-1,6)).min(axis = 0))
+print(epsh.vector().get_local().reshape((-1,6)).max(axis = 0))
 
 
