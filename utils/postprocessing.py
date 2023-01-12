@@ -47,12 +47,12 @@ def comparison_with_reference_sol(sol, output_sol_ref, labels = ["uh", "eps_mech
 
     return errors
 
-def generate_vtk_db_mech(sol, output_vtk, output_sol = None):
+def generate_vtk_db_mech(sol, output_vtk, output_sol = None, labels = ["uh", "eps", "sig"]):
     sol["u"].rename('uh', '')
-    sol["state_mech"][1].rename('sigma_mech', '')
-    sol["state_db"][1].rename('sigma_db', '')
-    sol["state_mech"][0].rename('eps_mech', '')
-    sol["state_db"][0].rename('eps_db', '')
+    sol["state_mech"][1].rename(labels[2] + '_mech', '')
+    sol["state_db"][1].rename(labels[2] + '_db', '')
+    sol["state_mech"][0].rename(labels[1] + '_mech', '')
+    sol["state_db"][0].rename(labels[2] + '_db', '')
     
     uh = sol["u"]
     state_mech = sol["state_mech"]
@@ -68,11 +68,11 @@ def generate_vtk_db_mech(sol, output_vtk, output_sol = None):
     em = local_project_given_sol(state_mech[0], Sh0_DG, dxm = state_mech[0].dxm)
     edb = local_project_given_sol(state_db[0], Sh0_DG, dxm = state_mech[0].dxm)
     
-    sm.rename("sigma_mech", '')
-    sdb.rename("sigma_db", '')
+    sm.rename(labels[2] + '_mech', '')
+    sdb.rename(labels[2] + '_db', '')
     
-    em.rename("eps_mech", '')
-    edb.rename("eps_db", '')
+    em.rename(labels[1] + '_mech', '')
+    edb.rename(labels[2] + '_db', '')
     
     fields = {'vertex': [uh], 'cell_vector': [sm, sdb, em, edb] }
     fields_sol = {'vertex': [uh], 'cell': [sm, sdb, em, edb] }

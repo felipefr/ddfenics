@@ -56,7 +56,8 @@ class DDProblemBase:
         
     def update_state_mech(self):
         state_update = self.accelerated_update(self.z, self.z_db)
-    
+        # state_update = self.z
+
         for i, z_i in enumerate(self.z_mech):
             z_i.update(state_update[i])
             
