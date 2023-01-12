@@ -72,7 +72,7 @@ def generate_vtk_db_mech(sol, output_vtk, output_sol = None, labels = ["uh", "ep
     sdb.rename(labels[2] + '_db', '')
     
     em.rename(labels[1] + '_mech', '')
-    edb.rename(labels[2] + '_db', '')
+    edb.rename(labels[1] + '_db', '')
     
     fields = {'vertex': [uh], 'cell_vector': [sm, sdb, em, edb] }
     fields_sol = {'vertex': [uh], 'cell': [sm, sdb, em, edb] }
