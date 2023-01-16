@@ -3,7 +3,7 @@
 
 # 0) **Imports**
 
-# In[1]:
+# In[11]:
 
 
 import os, sys
@@ -27,16 +27,22 @@ database_file = 'database_generated.txt'
 
 Nd = 1000 # number of points
 noise = 0.01
-g_range = np.array([[-0.42, 0.42], [-0.75 , 0.75]]).T
+g_range = np.array([[-0.09, -0.05], [0.05,0.15]])
 
-alpha_0 = 1.0
-beta = 100
+qL = 100.0
+qT = 10.0
+c1 = 6.0
+c2 = 3.0
+c3 = 500.0
+
+alpha_0 = 1000.0
+beta = 1e2
 
 # alpha : Equivalent to sig = lamb*df.div(u)*df.Identity(2) + mu*(df.grad(u) + df.grad(u).T)
 def flux(g):
     g2 = np.dot(g,g)
     alpha = alpha_0*(1+beta*g2)
-    return -alpha*g
+    return alpha*g
 
 np.random.seed(1)
 DD = np.zeros((Nd,2,2))
@@ -104,8 +110,8 @@ from ddfenics.dd.ddspace import DDSpace
 
 Uh = df.FunctionSpace(mesh, "CG", 1) # Equivalent to CG
 bcBottom = df.DirichletBC(Uh, df.Constant(0.0), boundary_markers, bottomFlag)
-bcTop = df.DirichletBC(Uh, df.Constant(0.0), boundary_markers, topFlag)
-bcs = [bcBottom, bcTop]
+bcRight = df.DirichletBC(Uh, df.Constant(0.0), boundary_markers, rightFlag)
+bcs = [bcBottom, bcRight]
 
 # Space for stresses and strains
 Sh0 = DDSpace(Uh, 2, 'DG') 
@@ -118,49 +124,47 @@ spaces = [Uh, Sh0]
 # - Strong format: 
 # $$
 # \begin{cases}
-# div \mathbb{q} = f  \text{in} \, \Omega \\
+# - div \mathbf{q} = f  \text{in} \, \Omega \\
 # u = 0 \quad \text{on} \, \Gamma_1 \cup \Gamma_3 \\
-# \mathbf{g} = -\nabla u \quad \text{in} \, \Omega \\
+# \mathbf{g} = \nabla u \quad \text{in} \, \Omega \\
 # \mathbf{q} \cdot n  = \bar{q}_{2,4} \quad \text{on} \, \Gamma_2 \cup \Gamma_4 \\
 # \end{cases}
 # $$ 
 # - DD equilibrium subproblem: Given $(\varepsilon^*, \sigma^*) \in Z_h$, solve for $(u,\eta) \in U_h$  
 # $$
 # \begin{cases}
-# (\mathbb{C} \nabla^s u , \nabla^s v ) = -(\mathbb{C} \mathbf{g}^* , \nabla v ) \quad \forall v \in U_h, \\
+# (\mathbb{C} \nabla^s u , \nabla^s v ) = (\mathbb{C} \mathbf{g}^* , \nabla v ) \quad \forall v \in U_h, \\
 # (\mathbb{C} \nabla^s \eta , \nabla^s \xi ) = \Pi_{ext}(\xi) - (\mathbf{q}^* , \nabla \xi ) \quad \forall \xi \in U_h \\
 # \end{cases}
 # $$
 # - Updates:
 # $$
 # \begin{cases}
-# \mathbf{g} = -\nabla u \\
+# \mathbf{g} = \nabla u \\
 # \mathbf{q} = \mathbf{q}^* + \mathbb{C} \nabla \eta
 # \end{cases}
 # $$
 # - DD ''bilinear'' form : $(\bullet , \nabla v)$ or sometimes  $(\mathbb{C} \nabla \bullet, \nabla v)$ 
 
-# In[21]:
+# In[16]:
 
 
 # Changed
 from ddfenics.dd.ddmetric import DDMetric
-from ddfenics.dd.ddbilinear import DDBilinear
 
 # Unchanged
-uh = df.TrialFunction(Uh)
-vh = df.TestFunction(Uh)
+x = df.SpatialCoordinate(mesh)
 
-
-flux_left = df.Constant(10.0)
-flux_right = df.Constant(1.0)
-source = df.Constant(10.0)
-
-P_ext = source*vh*dx + flux_left*vh*ds(leftFlag) + flux_right*vh*ds(rightFlag)
+flux_left = df.Constant(qL)
+flux_top = df.Constant(qT)
+source = c3*df.sin(c1*x[0])*df.cos(c2*x[1])
 
 # changed 
-C = alpha_0*np.eye(2)
-dddist = DDMetric(C = C, V = Sh0, dx = dx)
+P_ext = lambda w : source*w*dx + flux_left*w*ds(leftFlag) + flux_top*w*ds(topFlag)
+
+dddist = DDMetric(ddmat = ddmat, V = Sh0, dx = dx)
+
+print(dddist.CC)
 
 
 # 6) **Statement and Solving the problem** <br> 
@@ -168,22 +172,30 @@ dddist = DDMetric(C = C, V = Sh0, dx = dx)
 # - DDSolver : Implements the alternate minimization using SKlearn NearestNeighbors('ball_tree', ...) searchs for the projection onto data.
 # - Stopping criteria: $\|d_k - d_{k-1}\|/energy$
 
-# In[22]:
+# In[17]:
 
 
 from ddfenics.dd.ddfunction import DDFunction
 from ddfenics.dd.ddproblem_poisson import DDProblemPoisson as DDProblem # Generic implementation
 from ddfenics.dd.ddsolver import DDSolver
+from ddfenics.dd.ddproblem_generic import DDProblemGeneric # Generic implementation
+from ddfenics.dd.ddbilinear import DDBilinear
+
+uh = df.TrialFunction(Uh)
+vh = df.TestFunction(Uh)
+a = DDBilinear(dddist, df.grad, uh, vh, dx = Sh0.dxm)
+
 
 # replaces df.LinearVariationalProblem(a, b, uh, bcs = [bcL])
 problem = DDProblem(spaces, df.grad, L = P_ext, bcs = bcs, metric = dddist) 
+# problem = DDProblemGeneric(spaces, a, L = P_ext(vh), bcs = bcs, metric = dddist) 
 sol = problem.get_sol()
 
 start = timer()
 
 #replaces df.LinearVariationalSolver(problem)
-solver = DDSolver(problem, ddmat, opInit = 'zero', seed = 1)
-tol_ddcm = 1e-7
+solver = DDSolver(problem, ddmat, opInit = 'zero', seed = 2)
+tol_ddcm = 1e-8
 solver.solve(tol = tol_ddcm, maxit = 100);
 
 end = timer()
@@ -201,7 +213,7 @@ print("Norm energy: ", norm_energy)
 
 # a) *Minimisation*
 
-# In[19]:
+# In[18]:
 
 
 hist = solver.hist
@@ -226,4 +238,57 @@ plt.legend(loc = 'best')
 plt.grid()
 
 
-#  
+# In[19]:
+
+
+state_mech = sol["state_mech"]
+state_db = sol["state_db"]
+
+fig,((ax1,ax2),(ax3,ax4)) = plt.subplots(2,2)
+
+ax1.set_xlabel(r'$g_{x}$')
+ax1.set_ylabel(r'$q_{x}$')
+ax1.scatter(ddmat.DB[:, 0, 0], ddmat.DB[:, 1, 0], c='gray')
+ax1.scatter(state_db[0].data()[:,0], state_db[1].data()[:,0], c='blue')
+ax1.scatter(state_mech[0].data()[:,0], state_mech[1].data()[:,0], marker = 'x', c='black')
+
+ax2.set_xlabel(r'$g_{y}$')
+ax2.set_ylabel(r'$q_{y}$')
+ax2.scatter(ddmat.DB[:, 0, 1], ddmat.DB[:, 1, 1], c='gray')
+ax2.scatter(state_db[0].data()[:,1], state_db[1].data()[:,1], c='blue')
+ax2.scatter(state_mech[0].data()[:,1], state_mech[1].data()[:,1], marker = 'x', c='black')
+
+
+ax3.set_xlabel(r'$g_{x}$')
+ax3.set_ylabel(r'$q_{y}$')
+ax3.scatter(ddmat.DB[:, 0, 0], ddmat.DB[:, 1, 1], c='gray')
+ax3.scatter(state_db[0].data()[:,0], state_db[1].data()[:,1], c='blue')
+ax3.scatter(state_mech[0].data()[:,0], state_mech[1].data()[:,1], marker = 'x', c='black')
+
+ax4.set_xlabel(r'$g_{y}$')
+ax4.set_ylabel(r'$q_{x}$')
+ax4.scatter(ddmat.DB[:, 0, 1], ddmat.DB[:, 1, 0], c='gray')
+ax4.scatter(state_db[0].data()[:,1], state_db[1].data()[:,0], c='blue')
+ax4.scatter(state_mech[0].data()[:,1], state_mech[1].data()[:,0], marker = 'x', c='black')
+
+plt.tight_layout()
+
+
+# 
+
+# In[20]:
+
+
+from ddfenics.utils.postprocessing import *
+output_sol_ref = "square_fe_sol.xdmf"
+errors = comparison_with_reference_sol(sol, output_sol_ref, labels = ['u','g','q'])
+
+output_vtk = "square_dd_vtk.xdmf"
+generate_vtk_db_mech(sol, output_vtk, labels = ["u", "g", "q"])
+
+
+# In[ ]:
+
+
+
+

@@ -27,6 +27,7 @@ class DDProblemBase:
         self.L = L
         self.grad = grad
         self.dx = self.Sh.dxm
+        self.ds = df.Measure('ds', domain = self.Uh.mesh())
         self.bcs = bcs
         self.bcsPF = bcsPF
         
