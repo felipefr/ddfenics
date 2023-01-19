@@ -91,7 +91,7 @@ ds = df.Measure('ds', domain=mesh, subdomain_data=boundary_markers)
 
 from ddfenics.dd.ddspace import DDSpace
 
-Uh = df.VectorFunctionSpace(mesh, "Lagrange", 1) # Unchanged
+Uh = df.VectorFunctionSpace(mesh, "Lagrange", 2) # Unchanged
 bcL = df.DirichletBC(Uh, df.Constant((0.0, 0.0)), boundary_markers, clampedBndFlag) # Unchanged
 
 # Space for stresses and strains

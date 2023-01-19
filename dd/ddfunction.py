@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jun  2 20:06:23 2022
+Created on Thu Jan 19 21:23 2023
 
 @author: felipe
 """
@@ -10,10 +10,8 @@ Created on Thu Jun  2 20:06:23 2022
 import dolfin as df 
 import numpy as np
 import ufl
-from fetricks.fenics.la.wrapper_solvers import local_project_given_sol, LocalProjector
-
-typesForProjection = (ufl.tensors.ComponentTensor, ufl.tensors.ListTensor, ufl.differentiation.VariableDerivative,
-                      ufl.algebra.Sum, ufl.tensoralgebra.Dot, ufl.differentiation.Grad, df.Expression)
+from fetricks.fenics.la.wrapper_solvers import LocalProjector
+from functools import singledispatch
 
 # Class to convert raw data to fenics tensorial function objects (and vice-versa)    
 class DDFunction(df.Function):
@@ -25,187 +23,20 @@ class DDFunction(df.Function):
         self.projector = LocalProjector(self.V, dxm if dxm else V.dxm, sol = self)
         
         self.n = self.V.num_sub_spaces()
-        self.nel = self.mesh.num_cells()
-        self.m = int(self.V.dim()/(self.n*self.nel)) # local number gauss points
-        self.ng = self.nel*self.m # global number gauss points
-        
-        print("number of gauss points = ", self.m )
-                
-        self.d = self.__getBlankData() # Nel x Ngauss_local x n_dofs (nel x m x n)
-        
-        # only needed for the fast data query
-        self.map = [] # n x 2 x
-        self.MAP = self.__createMapping()
-        
-        
-        self.dofmap = V.dofmap()         
-        self.cell_dofs = np.array([self.dofmap.cell_dofs(e.index()) for e in df.cells(self.mesh) ])
 
-# Working for P1 only
-# More general implementation, slower 
-    # def data(self):        
-    #     for e in df.cells(self.mesh):
-    #         self.d[e.index(), :, :] = self.vector().vec()[self.cell_dofs[e.index()]].reshape((-1, self.n)) 
-            
-    #     return self.d.reshape((-1, self.n))
+        self.update = singledispatch(self.update)
+        self.update.register(np.ndarray, self.__update_with_array)
+        self.update.register(df.Function, self.__update_with_function)
 
-# Working for P1 only
-# Original implementation (less general), faster
     def data(self):        
-        for i in range(self.n):
-            self.d[self.map[i,0,:], 0, i] = self.vector().get_local()[self.map[i,1,:]] # 0 means only one gauss point
-            
-        return self.d.reshape((-1,self.n))
+        return self.vector().get_local()[:].reshape((-1, self.n)) 
 
     def update(self, d): # Maybe improve perfomance
+        self.projector(d)
     
-        if isinstance(d, np.ndarray):
-            self.vector().set_local(self.__data2tensorVec(d, self.vector().get_local()[:]))
-            
-        elif isinstance(d, df.Function) and d.function_space() == self.V:
-            self.assign(d)            
-            
-        else:
-            self.projector(d)
+    def __update_with_array(self, d):
+        self.vector().set_local(d.flatten())
 
-
-# Only needed for the faster data() query
-    def __createMapping(self): 
-        
-        for i in range(self.n):
-            mapTemp = self.V.sub(i).collapse(True)[1]
-            self.map.append( [np.array(list(x)) for x in [mapTemp.keys(), mapTemp.values()]])   
-            
-        self.map = np.array(self.map)
-
-        MAP = np.zeros((self.map.shape[2], self.n), dtype = int)        
-        for i in range(self.n):
-            MAP[self.map[i,0,:], i] = self.map[i,1,:]
-        
-        return MAP
-        
-                
-    def __data2tensorVec(self, d, tenVec = None):
-        if(type(tenVec) == type(None)):
-            tenVec = np.zeros(self.dim())
-            
-        dd = d.reshape((-1, self.m, self.n))
-        for e in df.cells(self.mesh):
-            tenVec[self.cell_dofs[e.index()]] = dd[e.index(), : , :].flatten()
-        
-        return tenVec
-    
-            
-    def __getBlankData(self):
-         return np.zeros(self.V.dim()).reshape((-1, self.m, self.n)) 
-     
-        
-     
-        
-# # Class to convert raw data to fenics tensorial function objects (and vice-versa)    
-# class DDFunction(df.Function):
-    
-#     def __init__(self, V, dxm = None, name = ''):
-#         super().__init__(V, name = name)  
-#         self.mesh = V.mesh()
-#         self.V = self.function_space()
-        
-#         if(type(dxm) == type(None)):
-#             self.dxm = V.dxm
-#         else:
-#             self.dxm = dxm
-                    
-#         self.n = self.V.num_sub_spaces()
-#         self.nel = self.mesh.num_cells()
-#         self.m = int(self.V.dim()/(self.n*self.nel))
-#         self.ng = self.nel*self.m 
-        
-#         print("number of gauss points = ", self.m )
-                
-#         self.d = self.__getBlankData()
-
-#         self.dofmap = V.dofmap() 
-        
-#         # only needed for the fast data query
-#         self.map = []
-#         self.MAP = self.__createMapping()
-
-
-# # Working for P1 only
-# # More general implementation, but possibly slower 
-#     def data(self):        
-#         for e in df.cells(self.mesh):
-#             dofs = self.dofmap.cell_dofs(e.index())
-#             self.d[e.index(), :, :] = self.vector().vec()[dofs].reshape((-1, self.n)) 
-            
-#         return self.d.reshape((-1, self.n))
-
-# # Original implementation (less general), possibly faster
-#     # def data(self):        
-#     #     for i in range(self.n):
-#     #         self.d[self.map[i,0,:], 0, i] = self.vector().get_local()[self.map[i,1,:]]
-            
-#     #     return self.d.reshape((-1,self.n))
-
-# # Only needed for the faster data() query
-#     def __createMapping(self): 
-        
-#         for i in range(self.n):
-#             mapTemp = self.V.sub(i).collapse(True)[1]
-#             self.map.append( [np.array(list(x)) for x in [mapTemp.keys(), mapTemp.values()]])   
-            
-#         self.map = np.array(self.map)
-
-#         MAP = np.zeros((self.map.shape[2], self.n), dtype = int)        
-#         for i in range(self.n):
-#             MAP[self.map[i,0,:], i] = self.map[i,1,:]
-        
-#         return MAP
-        
-                
-#     def __data2tensorVec(self, d, tenVec = None):
-#         if(type(tenVec) == type(None)):
-#             tenVec = np.zeros(self.dim())
-            
-#         dd = d.reshape((-1, self.m, self.n))
-#         for e in df.cells(self.mesh):
-#             ie = e.index()
-#             dofs = self.dofmap.cell_dofs(ie)
-#             tenVec[dofs] = dd[ie, : , :].flatten()
-        
-#         return tenVec
-    
-#     def update(self, d): # Maybe improve perfomance
-        
-#         if isinstance(d, np.ndarray):
-#             self.vector().set_local(self.__data2tensorVec(d, self.vector().get_local()[:]))
-            
-#         elif isinstance(d, typesForProjection):
-#             local_project_given_sol(d, self.V, u = self, dxm = self.dxm)
-        
-#         elif isinstance(d, df.Function) and d.function_space() == self.V:
-#             self.assign(d)
-        
-#         elif isinstance(d, df.Function) and d.function_space() != self.V:
-#             local_project_given_sol(d, self.V, u = self, dxm = self.dxm)
-#         else:
-#             print("DDFunction.update: Invalid type")
-#             print(type(d))
-#             input()
-            
-            
-
-#         # for e in df.cells(self.mesh):
-#         #     # print("hello, I'm cell ", e.index(), e.global_index(), comm.Get_rank() )
-#         #     dofs = self.Wdofmap.cell_dofs(e.index())
-#         #     dofs_tan = self.Wtandofmap.cell_dofs(e.index())
-#         #     # print(dofs, dofs_tan )
-#         #     m = self.micromodels[e.index()]
-#         #     m.setUpdateFlag(False)
-#         #     self.stress.vector().vec()[dofs] = m.getStress(self.eps.vector().get_local()[dofs])
-#         #     self.tangent.vector().vec()[dofs_tan] = m.getTangent(self.eps.vector().get_local()[dofs]).flatten()[ind_sym_tensor]
-            
-        
-#     def __getBlankData(self):
-#          return np.zeros(self.V.dim()).reshape((-1, self.m, self.n)) 
-
+    def __update_with_function(self, d):
+        self.assign(d)
+         
