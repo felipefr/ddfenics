@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan 19 21:23 2023
+Created on Thu Jan 19 21:23:23 2023
 
 @author: felipe
 """
+
 
 # from numba import jit
 import dolfin as df 
@@ -23,7 +24,10 @@ class DDFunction(df.Function):
         self.projector = LocalProjector(self.V, dxm if dxm else V.dxm, sol = self)
         
         self.n = self.V.num_sub_spaces()
-
+        self.nel = self.mesh.num_cells()
+        self.m = int(self.V.dim()/(self.n*self.nel)) # local number gauss points
+        self.ng = self.nel*self.m # global number gauss points
+                
         self.update = singledispatch(self.update)
         self.update.register(np.ndarray, self.__update_with_array)
         self.update.register(df.Function, self.__update_with_function)

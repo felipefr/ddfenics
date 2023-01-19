@@ -14,6 +14,10 @@ from ddfenics.dd.ddproblem_infinitesimalstrain import DDProblemInfinitesimalStra
 from ddfenics.dd.ddsolver import DDSolver
 
 
+from fetricks.fenics.la.wrapper_solvers import local_project_given_sol
+
+
+
 # 1) **Consititutive behaviour Definition**
 
 # In[2]:
@@ -26,6 +30,7 @@ from fetricks import Id_mandel_np, tr_mandel
 database_file = 'database_generated.txt' # database_ref.txt to sanity check
 
 Nd = 100000 # number of points
+degree = 1 # Uh
 
 # E = 100.0
 # nu = 0.3
@@ -91,7 +96,8 @@ ds = df.Measure('ds', domain=mesh, subdomain_data=boundary_markers)
 
 from ddfenics.dd.ddspace import DDSpace
 
-Uh = df.VectorFunctionSpace(mesh, "Lagrange", 2) # Unchanged
+
+Uh = df.VectorFunctionSpace(mesh, "Lagrange", degree) # Unchanged
 bcL = df.DirichletBC(Uh, df.Constant((0.0, 0.0)), boundary_markers, clampedBndFlag) # Unchanged
 
 # Space for stresses and strains
@@ -142,10 +148,44 @@ print("Time spent: ", end - start)
 print("Norm L2: ", normL2)
 print("Norm energy: ", norm_energy)
 
+relative_error = lambda x1, x0: np.sqrt(df.assemble( df.inner(x1 - x0, x1 - x0)*Sh0.dxm ) )/np.sqrt(df.assemble( df.inner(x0, x0)*Sh0.dxm ) )
+
+# relative_error = lambda x0, x1: df.errornorm(x0, x1, norm_type = 'L2', degree_rise = 2)/df.norm(x0, norm_type = 'L2')
+
+Sh_ref = df.VectorFunctionSpace(mesh, "DG", degree - 1, dim = 3) 
+sol_ref_file =  df.XDMFFile("bar_nonlinear_P{0}_sol.xdmf".format(degree))
+sol_ref = {"state" : [DDFunction(Sh_ref, dxm = Sh0.dxm), DDFunction(Sh_ref, dxm = Sh0.dxm)], "u" : df.Function(Uh)}   
+sol_ref_file.read_checkpoint(sol_ref["u"],"u")
+sol_ref_file.read_checkpoint(sol_ref["state"][0],"eps")
+sol_ref_file.read_checkpoint(sol_ref["state"][1],"sig")
+
+error_u = relative_error(sol_ref["u"], sol["u"])
+error_eps = relative_error(sol_ref["state"][0], sol["state_mech"][0])
+error_sig = relative_error(sol_ref["state"][1], sol["state_mech"][1])
+
 # Convergence in 21 iterations
 # assert np.allclose(normL2, 0.0004429280923646128) # small change from 0.00044305280541032056
-assert np.allclose(norm_energy, 0.0021931246408032315)
+# assert np.allclose(norm_energy, 0.0021931246408032315)
 
+
+print(error_u)
+print(error_eps)
+print(error_sig)
+
+if(degree == 3):
+    assert np.allclose(error_u, 0.00924497320057915)
+    assert np.allclose(error_eps, 0.047388834633471724)
+    assert np.allclose(error_sig, 0.031010810382930278)
+    
+elif(degree == 2):
+    assert np.allclose(error_u, 0.00942447814261604)
+    assert np.allclose(error_eps, 0.045433857591044735)
+    assert np.allclose(error_sig, 0.012733014790579809)
+
+elif(degree == 1):
+    assert np.allclose(error_u, 0.00803377328109256)
+    assert np.allclose(error_eps, 0.04152470807124927)
+    assert np.allclose(error_sig, 0.014129803896221652)    
 
 # 7) **Postprocessing**
 
@@ -156,24 +196,24 @@ assert np.allclose(norm_energy, 0.0021931246408032315)
 
 hist = solver.hist
 
-# fig = plt.figure(2)
-# plt.title('Minimisation')
-# plt.plot(hist['relative_energy'], 'o-')
-# plt.xlabel('iterations')
-# plt.ylabel('energy gap')
-# plt.legend(loc = 'best')
-# plt.yscale('log')
-# plt.grid()
+fig = plt.figure(2)
+plt.title('Minimisation')
+plt.plot(hist['relative_energy'], 'o-')
+plt.xlabel('iterations')
+plt.ylabel('energy gap')
+plt.legend(loc = 'best')
+plt.yscale('log')
+plt.grid()
 
-# fig = plt.figure(3)
-# plt.title('Relative distance (wrt k-th iteration)')
-# plt.plot(hist['relative_distance'], 'o-', label = "relative_distance")
-# plt.plot([0,len(hist['relative_energy'])],[tol_ddcm,tol_ddcm])
-# plt.yscale('log')
-# plt.xlabel('iterations')
-# plt.ylabel('rel. distance')
-# plt.legend(loc = 'best')
-# plt.grid()
+fig = plt.figure(3)
+plt.title('Relative distance (wrt k-th iteration)')
+plt.plot(hist['relative_distance'], 'o-', label = "relative_distance")
+plt.plot([0,len(hist['relative_energy'])],[tol_ddcm,tol_ddcm])
+plt.yscale('log')
+plt.xlabel('iterations')
+plt.ylabel('rel. distance')
+plt.legend(loc = 'best')
+plt.grid()
 
 
 # b) *scatter plot*
@@ -181,115 +221,23 @@ hist = solver.hist
 # In[9]:
 
 
-# state_mech = sol["state_mech"]
-# state_db = sol["state_db"]
+state_mech = sol["state_mech"]
+state_db = sol["state_db"]
 
-# fig,(ax1,ax2) = plt.subplots(1,2)
-# ax1.set_xlabel(r'$\epsilon_{xx}+\epsilon_{yy}$')
-# ax1.set_ylabel(r'$\sigma_{xx}+\sigma_{yy}$')
-# ax1.scatter(ddmat.DB[:, 0, 0] + ddmat.DB[:, 0, 1], ddmat.DB[:, 1, 0] + ddmat.DB[:, 1, 1], c='gray')
-# ax1.scatter(state_db[0].data()[:,0]+state_db[0].data()[:,1],state_db[1].data()[:,0]+state_db[1].data()[:,1], c='blue')
-# ax1.scatter(state_mech[0].data()[:,0]+state_mech[0].data()[:,1],state_mech[1].data()[:,0]+state_mech[1].data()[:,1], marker = 'x', c='black' )
+fig,(ax1,ax2) = plt.subplots(1,2)
+ax1.set_xlabel(r'$\epsilon_{xx}+\epsilon_{yy}$')
+ax1.set_ylabel(r'$\sigma_{xx}+\sigma_{yy}$')
+ax1.scatter(ddmat.DB[:, 0, 0] + ddmat.DB[:, 0, 1], ddmat.DB[:, 1, 0] + ddmat.DB[:, 1, 1], c='gray')
+ax1.scatter(state_db[0].data()[:,0]+state_db[0].data()[:,1],state_db[1].data()[:,0]+state_db[1].data()[:,1], c='blue')
+ax1.scatter(state_mech[0].data()[:,0]+state_mech[0].data()[:,1],state_mech[1].data()[:,0]+state_mech[1].data()[:,1], marker = 'x', c='black' )
 
-# ax2.set_xlabel(r'$\epsilon_{xy}$')
-# ax2.set_ylabel(r'$\sigma_{xy}$')
-# ax2.scatter(ddmat.DB[:, 0, 2], ddmat.DB[:, 1, 2], c='gray')
-# ax2.scatter(state_db[0].data()[:,2], state_db[1].data()[:,2], c='blue')
-# ax2.scatter(state_mech[0].data()[:,2], state_mech[1].data()[:,2], marker = 'x', c='black')
-
-
-#  
-
-# c) *Convergence with data*
-
-# In[10]:
-
-
-relative_norm = lambda x1, x0: np.sqrt(df.assemble( df.inner(x1 - x0, x1 - x0)*dx ) )/np.sqrt(df.assemble( df.inner(x0, x0)*dx ) )
-
-Nd_list = [10,100, 1000, 10000, 50000, 100000] 
-hist_list = []
-error_u = []
-error_eps = []
-error_sig = []
-
-sol_ref_file =  df.XDMFFile("bar_nonlinear_sol.xdmf")
-sol_ref = {"state" : [DDFunction(Sh0), DDFunction(Sh0)], "u" : df.Function(Uh)}   
-sol_ref_file.read_checkpoint(sol_ref["u"],"u")
-sol_ref_file.read_checkpoint(sol_ref["state"][0],"eps")
-sol_ref_file.read_checkpoint(sol_ref["state"][1],"sig")
-
-np.random.seed(1)
-
-
-for Nd_i in Nd_list:
-    indexes = np.arange(0,Nd).astype('int')
-    np.random.shuffle(indexes)
-    DD_i = DD[indexes[:Nd_i], : , : ]
-    ddmat_i = DDMaterial(DD_i)
-    metric_i = DDMetric(ddmat = ddmat_i, V = Sh0, dx = dx)
-    problem_i = DDProblem(spaces, ft.symgrad_mandel, b, [bcL], metric = metric_i) 
-    sol_i = problem_i.get_sol()
-    solver_i = DDSolver(problem_i, ddmat, opInit = 'zero', seed = 1)
-    solver_i.solve(tol = tol_ddcm, maxit = 100)
-    
-    hist_list.append(copy.deepcopy(solver_i.hist))
- 
-    error_u.append(relative_norm(sol_i["u"], sol_ref["u"])) 
-    error_eps.append(relative_norm(sol_i["state_mech"][0], sol_ref["state"][0])) 
-    error_sig.append(relative_norm(sol_i["state_mech"][1], sol_ref["state"][1]))
-    
-    
-    
-# plt.figure(5)
-# plt.title('Energy gap VS database size')
-# plt.plot(Nd_list, [hist_list[i]['relative_energy'][-1] for i in range(len(Nd_list))], '-o')
-# plt.xscale('log')
-# plt.yscale('log')
-# plt.xlabel('Nd')
-# plt.ylabel('energy gap')
-# plt.grid()
-
-# plt.figure(6)
-# plt.title('Relative L2 errors VS database size (wrt classical solutions)')
-# plt.plot(Nd_list, error_u, '-o', label = 'u')
-# plt.plot(Nd_list, error_eps, '-o', label = 'eps')
-# plt.plot(Nd_list, error_sig, '-o', label = 'sig')
-# plt.xscale('log')
-# plt.yscale('log')
-# plt.xlabel('Nd')
-# plt.ylabel('Errors')
-# plt.legend(loc = 'best')
-# plt.grid()
-
-
-print(error_u[-1], error_eps[-1],error_sig[-1])
-
-# assert np.allclose(error_u[-1], 0.007970155482771742)  # small change from 0.007970813663792299
-assert np.allclose(error_eps[-1], 0.041373578804711535)
-assert np.allclose(error_sig[-1], 0.014108344008671543)
-
-
-# 8. **Sanity check:** : Recovering reference database
+ax2.set_xlabel(r'$\epsilon_{xy}$')
+ax2.set_ylabel(r'$\sigma_{xy}$')
+ax2.scatter(ddmat.DB[:, 0, 2], ddmat.DB[:, 1, 2], c='gray')
+ax2.scatter(state_db[0].data()[:,2], state_db[1].data()[:,2], c='blue')
+ax2.scatter(state_mech[0].data()[:,2], state_mech[1].data()[:,2], marker = 'x', c='black')
 
 # In[11]:
-
-
-# After re-execute blocks 5 and 6, the error should be zero machine
-# Still, it's not possible to get error zero-machine precision
-# from ddfenics.dd.ddfunction import DDFunction
-
-# data = np.concatenate((sol_ref["state"][0].vector().get_local().reshape((-1,3)), 
-#                        sol_ref["state"][1].vector().get_local().reshape((-1,3))), axis = 1)
-
-# print(data.shape)
-# print(np.min(data[:,:3], axis = 0) )
-# print(np.max(data[:,:3], axis = 0) )
-
-# np.savetxt('database_ref.txt', data, header = '1.0 \n%d 2 3 3'%data.shape[0], comments = '', fmt='%.8e')
-# ddmat = DDMaterial('database_ref.txt') 
-# ddmat.plotDB()
-
 
 end_time_total = timer()
 

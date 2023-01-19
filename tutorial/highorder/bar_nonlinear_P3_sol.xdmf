@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<Xdmf Version="3.0">
+  <Domain>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="u">
+      <Grid Name="u_0" GridType="Uniform">
+        <Topology NumberOfElements="1000" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="1000 3" NumberType="UInt" Format="HDF">bar_nonlinear_P3_sol.h5:u/u_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="561 2" Format="HDF">bar_nonlinear_P3_sol.h5:u/u_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="CG" ElementDegree="3" ElementCell="triangle" Name="u" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="20000 1" NumberType="UInt" Format="HDF">bar_nonlinear_P3_sol.h5:u/u_0/cell_dofs</DataItem>
+          <DataItem Dimensions="9362 1" NumberType="Float" Format="HDF">bar_nonlinear_P3_sol.h5:u/u_0/vector</DataItem>
+          <DataItem Dimensions="1001 1" NumberType="UInt" Format="HDF">bar_nonlinear_P3_sol.h5:u/u_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="1000 1" NumberType="UInt" Format="HDF">bar_nonlinear_P3_sol.h5:u/u_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="eps">
+      <Grid Name="eps_0" GridType="Uniform">
+        <Topology NumberOfElements="1000" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="1000 3" NumberType="UInt" Format="HDF">bar_nonlinear_P3_sol.h5:eps/eps_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="561 2" Format="HDF">bar_nonlinear_P3_sol.h5:eps/eps_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="2" ElementCell="triangle" Name="eps" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="18000 1" NumberType="UInt" Format="HDF">bar_nonlinear_P3_sol.h5:eps/eps_0/cell_dofs</DataItem>
+          <DataItem Dimensions="18000 1" NumberType="Float" Format="HDF">bar_nonlinear_P3_sol.h5:eps/eps_0/vector</DataItem>
+          <DataItem Dimensions="1001 1" NumberType="UInt" Format="HDF">bar_nonlinear_P3_sol.h5:eps/eps_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="1000 1" NumberType="UInt" Format="HDF">bar_nonlinear_P3_sol.h5:eps/eps_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+    <Grid GridType="Collection" CollectionType="Temporal" Name="sig">
+      <Grid Name="sig_0" GridType="Uniform">
+        <Topology NumberOfElements="1000" TopologyType="Triangle" NodesPerElement="3">
+          <DataItem Dimensions="1000 3" NumberType="UInt" Format="HDF">bar_nonlinear_P3_sol.h5:sig/sig_0/mesh/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Dimensions="561 2" Format="HDF">bar_nonlinear_P3_sol.h5:sig/sig_0/mesh/geometry</DataItem>
+        </Geometry>
+        <Time Value="0.000000" />
+        <Attribute ItemType="FiniteElementFunction" ElementFamily="DG" ElementDegree="2" ElementCell="triangle" Name="sig" Center="Other" AttributeType="Vector">
+          <DataItem Dimensions="18000 1" NumberType="UInt" Format="HDF">bar_nonlinear_P3_sol.h5:sig/sig_0/cell_dofs</DataItem>
+          <DataItem Dimensions="18000 1" NumberType="Float" Format="HDF">bar_nonlinear_P3_sol.h5:sig/sig_0/vector</DataItem>
+          <DataItem Dimensions="1001 1" NumberType="UInt" Format="HDF">bar_nonlinear_P3_sol.h5:sig/sig_0/x_cell_dofs</DataItem>
+          <DataItem Dimensions="1000 1" NumberType="UInt" Format="HDF">bar_nonlinear_P3_sol.h5:sig/sig_0/cells</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+  </Domain>
+</Xdmf>
