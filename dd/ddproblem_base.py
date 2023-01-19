@@ -20,8 +20,8 @@ class DDProblemBase:
         self.Uh, self.Sh = spaces 
         self.metric = metric
         
-        self.z_mech = [DDFunction(self.Sh), DDFunction(self.Sh)] 
-        self.z_db = [DDFunction(self.Sh), DDFunction(self.Sh)] 
+        self.z_mech = DDFunction.get_cartesian_product([self.Sh, self.Sh])  
+        self.z_db = DDFunction.get_cartesian_product([self.Sh, self.Sh]) 
         self.strain_dim = self.Sh.num_sub_spaces()
         
         self.L = L

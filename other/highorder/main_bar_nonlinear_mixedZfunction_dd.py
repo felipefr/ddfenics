@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Jan 19 23:58:25 2023
+
+@author: ffiguere
+"""
+
 import os, sys
 from timeit import default_timer as timer
 import dolfin as df # Fenics : dolfin + ufl + FIAT + ...
@@ -10,6 +18,7 @@ import fetricks as ft
 from ddfenics.dd.ddmaterial import DDMaterial 
 from ddfenics.dd.ddmetric import DDMetric
 from ddfenics.dd.ddfunction import DDFunction
+from ddfenics.future.ddfunction_mixed import DDFunctionMixed
 from ddfenics.dd.ddproblem_infinitesimalstrain import DDProblemInfinitesimalStrain as DDProblem
 from ddfenics.dd.ddsolver import DDSolver
 
@@ -156,7 +165,7 @@ relative_error = lambda x1, x0: np.sqrt(df.assemble( df.inner(x1 - x0, x1 - x0)*
 
 Sh_ref = df.VectorFunctionSpace(mesh, "DG", DG_degree, dim = 3) 
 sol_ref_file =  df.XDMFFile("bar_nonlinear_P{0}_sol.xdmf".format(degree))
-sol_ref = {"state" : [DDFunction(Sh_ref, dxm = Sh0.dxm), DDFunction(Sh_ref, dxm = Sh0.dxm)], "u" : df.Function(Uh)}   
+sol_ref = {"state" : DDFunctionMixed.get_cartesian_product([Sh_ref, Sh_ref] , dxm = Sh0.dxm), "u" : df.Function(Uh)}   
 sol_ref_file.read_checkpoint(sol_ref["u"],"u")
 sol_ref_file.read_checkpoint(sol_ref["state"][0],"eps")
 sol_ref_file.read_checkpoint(sol_ref["state"][1],"sig")

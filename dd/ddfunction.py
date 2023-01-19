@@ -43,4 +43,8 @@ class DDFunction(df.Function):
 
     def __update_with_function(self, d):
         self.assign(d)
+        
+    @staticmethod
+    def get_cartesian_product(Vlist):
+        return [DDFunction(V) for V in Vlist]
          
