@@ -147,7 +147,7 @@ def sigma_law(w):
     e = df.variable(e)
     return df.diff(psi_e(e),e)
 
-Sh = df.VectorFunctionSpace(mesh, "DG", degree - 1, dim = 3) 
+Sh = df.VectorFunctionSpace(mesh, "DG", degree, dim = 3) 
 epsh = df.project( symgrad_mandel(uh), Sh)
 sig = sigma_law(uh)
 sigh = df.project( tensor2mandel(sig), Sh)
@@ -156,8 +156,8 @@ uh.rename("u",'')
 epsh.rename("eps",'')
 sigh.rename("sig",'')
 
-iofe.exportXDMF_gen("bar_nonlinear_P{0}_vtk.xdmf".format(degree), fields={'vertex': [uh], 'cell_vector': [epsh, sigh] })
-iofe.exportXDMF_checkpoint_gen("bar_nonlinear_P{0}_sol.xdmf".format(degree), fields={'vertex': [uh], 'cell': [epsh, sigh]})
+iofe.exportXDMF_gen("bar_nonlinear_P{0}_DG1_vtk.xdmf".format(degree), fields={'vertex': [uh], 'cell_vector': [epsh, sigh] })
+iofe.exportXDMF_checkpoint_gen("bar_nonlinear_P{0}_DG1_sol.xdmf".format(degree), fields={'vertex': [uh], 'cell': [epsh, sigh]})
 
 
 # 8. **Sanity Check**

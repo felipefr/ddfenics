@@ -31,6 +31,8 @@ database_file = 'database_generated.txt' # database_ref.txt to sanity check
 
 Nd = 100000 # number of points
 degree = 1 # Uh
+DG_degree = 1 # Normally DG_degree = degree - 1 
+Sh_representantion = 'DG' # To DG work in high-dimension we need more control points
 
 # E = 100.0
 # nu = 0.3
@@ -101,7 +103,7 @@ Uh = df.VectorFunctionSpace(mesh, "Lagrange", degree) # Unchanged
 bcL = df.DirichletBC(Uh, df.Constant((0.0, 0.0)), boundary_markers, clampedBndFlag) # Unchanged
 
 # Space for stresses and strains
-Sh0 = DDSpace(Uh, 3 , 'Quadrature') 
+Sh0 = DDSpace(Uh, 3 , Sh_representantion, degree_quad = DG_degree + 1) # Quadrature degree = DG + 1  
 # Sh0 = df.VectorFunctionSpace(mesh, 'DG', degree = 0 , dim = 3) 
 
 spaces = [Uh, Sh0]
@@ -152,8 +154,8 @@ relative_error = lambda x1, x0: np.sqrt(df.assemble( df.inner(x1 - x0, x1 - x0)*
 
 # relative_error = lambda x0, x1: df.errornorm(x0, x1, norm_type = 'L2', degree_rise = 2)/df.norm(x0, norm_type = 'L2')
 
-Sh_ref = df.VectorFunctionSpace(mesh, "DG", degree - 1, dim = 3) 
-sol_ref_file =  df.XDMFFile("bar_nonlinear_P{0}_sol.xdmf".format(degree))
+Sh_ref = df.VectorFunctionSpace(mesh, "DG", DG_degree, dim = 3) 
+sol_ref_file =  df.XDMFFile("bar_nonlinear_P{0}_DG1_sol.xdmf".format(degree))
 sol_ref = {"state" : [DDFunction(Sh_ref, dxm = Sh0.dxm), DDFunction(Sh_ref, dxm = Sh0.dxm)], "u" : df.Function(Uh)}   
 sol_ref_file.read_checkpoint(sol_ref["u"],"u")
 sol_ref_file.read_checkpoint(sol_ref["state"][0],"eps")
@@ -172,6 +174,7 @@ print(error_u)
 print(error_eps)
 print(error_sig)
 
+
 if(degree == 3):
     assert np.allclose(error_u, 0.00924497320057915)
     assert np.allclose(error_eps, 0.047388834633471724)
@@ -182,10 +185,22 @@ elif(degree == 2):
     assert np.allclose(error_eps, 0.045433857591044735)
     assert np.allclose(error_sig, 0.012733014790579809)
 
-elif(degree == 1):
+elif(degree == 1 and DG_degree == 0):
     assert np.allclose(error_u, 0.00803377328109256)
     assert np.allclose(error_eps, 0.04152470807124927)
     assert np.allclose(error_sig, 0.014129803896221652)    
+
+elif(degree == 1 and DG_degree == 1): # difference is not huge
+    assert np.allclose(error_u, 0.008034437290880379)
+    assert np.allclose(error_eps, 0.041524708071111076)
+    assert np.allclose(error_sig, 0.014129803896213156)
+
+
+elif(degree == 1 and DG_degree == 1 and Sh_representantion  == "DG"): # difference is not huge
+    assert np.allclose(error_u, 0.008034437295984955)
+    assert np.allclose(error_eps, 0.041524708071250895)
+    assert np.allclose(error_sig, 0.014129803896222728)    
+    
 
 # 7) **Postprocessing**
 

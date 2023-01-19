@@ -22,16 +22,6 @@ from sklearn.neighbors import KDTree
 from sklearn.neighbors import BallTree
 from sklearn.neighbors import NearestNeighbors
 
-def decideDistanceSpace(V):
-    if(V.representation == "Quadrature"):
-        Qe = df.VectorElement("Quadrature", V.mesh().ufl_cell(), 
-                              degree = V.sub(0).ufl_element().degree(), dim = 1, quad_scheme='default')
-        sh0 = df.FunctionSpace(V.mesh(), Qe ) # for stress
-    
-    elif(V.representation == "DG"):
-        sh0 = df.FunctionSpace(V.mesh() , 'DG', 0)    
-        
-    return sh0
 
 class DDMetric:
     def __init__(self, C = None, omega = 0.0, alpha = 1.0, V = None, dx = None, ddmat = None):
@@ -55,7 +45,7 @@ class DDMetric:
         
         self.modelTree = NearestNeighbors(n_neighbors=1, algorithm = 'ball_tree', metric='euclidean') 
         
-        self.sh0 = decideDistanceSpace(self.V)
+        self.sh0 = self.V.get_scalar_space()
         self.dist_func = df.Function(self.sh0)
 
     def reset(self, C):
