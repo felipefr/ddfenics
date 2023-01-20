@@ -45,6 +45,9 @@ class DDFunction(df.Function):
         self.assign(d)
         
     @staticmethod
+    def split(w):
+        return w[0], w[1]
+    
     def get_cartesian_product(Vlist):
         return [DDFunction(V) for V in Vlist]
          

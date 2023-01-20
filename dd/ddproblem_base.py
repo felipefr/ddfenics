@@ -15,7 +15,7 @@ from ddfenics.dd.ddfunction import DDFunction
 class DDProblemBase:
     
     def __init__(self, spaces, grad, L, bcs, metric,  
-                 form_compiler_parameters = {}, bcsPF = []):
+                  form_compiler_parameters = {}, bcsPF = []):
     
         self.Uh, self.Sh = spaces 
         self.metric = metric
@@ -53,7 +53,7 @@ class DDProblemBase:
     def accelerated_update(self, z_mech, z_db):
 
         return [ z_mech[0] + 0.5*self.Cinv*(z_mech[1] - z_db[1]), 
-                 z_mech[1] + 0.5*self.C*(z_mech[0] - z_db[0])]
+                  z_mech[1] + 0.5*self.C*(z_mech[0] - z_db[0])]
         
     def update_state_mech(self):
         state_update = self.accelerated_update(self.z, self.z_db)
@@ -69,3 +69,5 @@ class DDProblemBase:
 
     def get_state_mech_data(self):
         return np.concatenate(tuple([z_i.data() for i, z_i in enumerate(self.z_mech)]) , axis = 1)
+
+
