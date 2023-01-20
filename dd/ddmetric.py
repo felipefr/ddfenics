@@ -149,7 +149,10 @@ class DDMetric:
         self.dist_func.vector().set_local(distTree)
         return np.sqrt(df.assemble((self.dist_func**2)*self.dx)) # L2 norm
 
-
+    
+    def estimateC(self, DB):
+        return self.__estimateC(DB)
+    
     def __estimateC(self, DB):
         strain_dim = DB.shape[-1]
     
