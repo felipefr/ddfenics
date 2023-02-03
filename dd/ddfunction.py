@@ -21,7 +21,8 @@ class DDFunction(df.Function):
         super().__init__(V, name = name)  
         self.mesh = V.mesh()
         self.V = self.function_space()
-        self.projector = LocalProjector(self.V, dxm if dxm else V.dxm, sol = self)
+        self.dxm = dxm if dxm else V.dxm
+        self.projector = LocalProjector(self.V, self.dxm, sol = self)
         
         self.n = self.V.num_sub_spaces()
         self.nel = self.mesh.num_cells()

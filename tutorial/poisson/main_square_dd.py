@@ -12,7 +12,7 @@ import dolfin as df # Fenics : dolfin + ufl + FIAT + ...
 import numpy as np
 import matplotlib.pyplot as plt
 import fetricks as ft
-
+import ddfenics as dd
 
 # 1) **Consititutive behaviour Definition**
 
@@ -21,7 +21,6 @@ import fetricks as ft
 
 # fetricks is a set of utilitary functions to facilitate our lives
 from fetricks.mechanics.elasticity_conversions import youngPoisson2lame
-from ddfenics.dd.ddmaterial import DDMaterial 
 
 database_file = 'database_generated.txt'
 
@@ -53,7 +52,7 @@ for i in range(Nd):
     
 np.savetxt(database_file, DD.reshape((-1,4)), header = '1.0 \n%d 2 2 2'%Nd, comments = '', fmt='%.8e', )
 
-ddmat = DDMaterial(database_file)  # replaces sigma_law = lambda u : ...
+ddmat = dd.DDMaterial(database_file)  # replaces sigma_law = lambda u : ...
 
 plt.plot(DD[:,0,0], DD[:,1,0], 'o')
 plt.xlabel('$g_x$')
@@ -150,7 +149,6 @@ spaces = [Uh, Sh0]
 
 
 # Changed
-from ddfenics.dd.ddmetric import DDMetric
 
 # Unchanged
 x = df.SpatialCoordinate(mesh)
@@ -162,7 +160,7 @@ source = c3*df.sin(c1*x[0])*df.cos(c2*x[1])
 # changed 
 P_ext = lambda w : source*w*dx + flux_left*w*ds(leftFlag) + flux_top*w*ds(topFlag)
 
-dddist = DDMetric(ddmat = ddmat, V = Sh0, dx = dx)
+dddist = dd.DDMetric(ddmat = ddmat, V = Sh0, dx = dx)
 
 print(dddist.CC)
 
@@ -174,27 +172,20 @@ print(dddist.CC)
 
 # In[17]:
 
-
-from ddfenics.dd.ddfunction import DDFunction
-from ddfenics.dd.ddproblem_poisson import DDProblemPoisson as DDProblem # Generic implementation
-from ddfenics.dd.ddsolver import DDSolver
-from ddfenics.dd.ddproblem_generic import DDProblemGeneric # Generic implementation
-from ddfenics.dd.ddbilinear import DDBilinear
-
 uh = df.TrialFunction(Uh)
 vh = df.TestFunction(Uh)
-a = DDBilinear(dddist, df.grad, uh, vh, dx = Sh0.dxm)
+a = dd.DDBilinear(dddist, df.grad, uh, vh, dx = Sh0.dxm)
 
 
 # replaces df.LinearVariationalProblem(a, b, uh, bcs = [bcL])
-problem = DDProblem(spaces, df.grad, L = P_ext, bcs = bcs, metric = dddist) 
+problem = dd.DDProblemPoisson(spaces, df.grad, L = P_ext, bcs = bcs, metric = dddist) 
 # problem = DDProblemGeneric(spaces, a, L = P_ext(vh), bcs = bcs, metric = dddist) 
 sol = problem.get_sol()
 
 start = timer()
 
 #replaces df.LinearVariationalSolver(problem)
-solver = DDSolver(problem, ddmat, opInit = 'zero', seed = 2)
+solver = dd.DDSolver(problem, ddmat, opInit = 'zero', seed = 2)
 tol_ddcm = 1e-8
 solver.solve(tol = tol_ddcm, maxit = 100);
 
