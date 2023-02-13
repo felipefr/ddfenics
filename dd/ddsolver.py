@@ -26,24 +26,21 @@ class DDSolver:
 
         # build tree for database
         self.metric = self.problem.metric 
-        self.metric_energy = self.metric.diagonal()
     
         if(search):
             self.search = search
         else:    
             self.search = dd.DDSearch(self.metric)
-            self.search.fit(self.DB)
-            self.search.init_map(opInit, seed, ng = self.problem.z_mech[0].ng, Nd = len(self.DB))
         
-        self.hist = {'distance' : [], 'relative_distance': [], 'relative_energy': [], 'sizeDB': [], 'classical_relative_energy': []}
+        self.search.fit(self.DB)
+        self.search.init_map(opInit, seed, ng = self.problem.z_mech[0].ng, Nd = len(self.DB))
+        
+        self.hist = {'distance' : [], 'relative_distance': [], 'relative_energy': [], 'sizeDB': []}
         self.calls_hist = {}
         self.calls_hist['distance'] = lambda m, m_ref, m0 : m
         self.calls_hist['relative_distance'] = lambda m, m_ref, m0 : np.abs(m-m0)/m_ref
         self.calls_hist['relative_energy'] = lambda m, m_ref, m0 : (m/m_ref)**2 
         self.calls_hist['sizeDB'] = lambda m, m_ref, m0 : len(self.DB)
-        self.calls_hist['classical_relative_energy'] = lambda m, m_ref, m0 : (self.metric_energy.dist_fenics(self.problem.z_mech, self.problem.z_db)/m_ref)**2.0
-        
-    
     
     def solve(self, tol = 0.001, maxit = 100):
         
@@ -91,7 +88,7 @@ class DDSolver:
 
     def norm_ref(self):
         # return self.metric.dist_fenics(self.problem.z_mech) # only one argument becomes norm
-        return self.metric.dist_energy_fenics(self.problem.z_mech) # only one argument becomes norm
+        return self.metric.norm_energy_fenics(self.problem.z_mech) # only one argument becomes norm
         
     def distance_relative(self):
         # return self.distance_db_mech()/self.norm_ref()

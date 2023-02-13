@@ -16,15 +16,13 @@ Created on Thu Jan 27 14:18:12 2022
 
 import numpy as np
 import dolfin as df
-import math
 
 from sklearn.decomposition import PCA
 
 class DDMetric:
-    def __init__(self, C = None, omega = 0.0, alpha = 1.0, V = None, dx = None, ddmat = None):
+    def __init__(self, C = None, block_structure = "standard", V = None, dx = None, ddmat = None):
         self.V = V
-        self.omega = omega
-        self.alpha = alpha
+        self.block_structure = block_structure
         
         if(type(self.V) is not type(None) and type(dx) is type(None)):
             self.dx = self.V.dxm
@@ -45,23 +43,20 @@ class DDMetric:
 
     def reset(self, C):
         self.C = C
-        
-        n = self.C.shape[0]
-        self.CC = np.zeros((2*n,2*n))
-        self.CC[0:n,0:n] = self.C
-        self.CC[n:2*n,n:2*n] = self.alpha*np.linalg.inv(self.C)
-        self.CC[0:n,n:2*n] = self.omega*np.eye(n)
-        self.CC[n:2*n,0:n] = self.omega*np.eye(n)
-        
+        if(self.block_structure == 'standard'):    
+            self.CC = self.__standard_block_structure(self.C)
+        else:
+            self.CC = self.block_structure(self.C)
+             
         self.L = np.linalg.cholesky(self.CC) 
-        
         self.set_fenics_metric()
         
+    # Distance functions related (numpy based)
     def dist(self,state1,state2):
         return self.norm(state1-state2)
     
     def dist_sqr(self,state1,state2):
-        return math.sqrt(self.dist(state1,state2))
+        return np.sqrt(self.dist(state1,state2))
     
     def norm(self,state):
         return np.dot(state,np.dot(self.CC,state))
@@ -71,68 +66,34 @@ class DDMetric:
     
     def normL(self,state):
         return np.linalg.norm(self.transformL(state))
-
-    # update by changing the constant
+    
+    # Fenics-related functions
     def set_fenics_metric(self):
         n = self.C.shape[0]
-        C_fe = df.Constant(self.C)
-        Cinv_fe = df.Constant(self.CC[n:2*n,n:2*n]) # takes into account alpha
+        self.CC_fe = df.Constant(self.CC)
         
         if(type(self.dx) == type(None) ):
             self.dx = df.Measure('dx', self.V.mesh())
+        
+        self.form_inner_prod = lambda dz: df.assemble(df.inner(df.dot(self.CC_fe, dz), dz)*self.dx)
+        self.form_energy = lambda dz: df.assemble(2.0*df.inner(dz[0], dz[1])*self.dx)
+        
+        self.C_fe = df.Constant(self.CC[:n,:n])
+        self.Cinv_fe = df.Constant(self.CC[n:2*n, n:2*n])
+      
+    def dist_fenics(self, z_mech, z_db):
+        return np.sqrt( self.form_inner_prod(z_mech - z_db)) 
     
-        self.deps = df.Function(self.V)
-        self.dsig = df.Function(self.V)
-        
-        self.a_metric = (df.inner(df.dot(C_fe, self.deps), self.deps)*self.dx + 
-            df.inner(df.dot(Cinv_fe, self.dsig), self.dsig)*self.dx + 
-            2*self.omega*df.inner(self.dsig, self.deps)*self.dx)
-        
-        self.a_energy = 2.0*df.inner(self.dsig, self.deps)*self.dx
-        
-        self.C_fe = C_fe
-        self.Cinv_fe = Cinv_fe
-        
-    def dist_fenics(self, z_mech, z_db = None):
-        if(type(z_db) == type(None) ):
-            self.deps.assign(z_mech[0])
-            self.dsig.assign(z_mech[1])
-        else:
-            self.deps.assign(z_mech[0] - z_db[0])
-            self.dsig.assign(z_mech[1] - z_db[1])
-            
-        return np.sqrt( df.assemble(self.a_metric) ) 
+    def norm_fenics(self, z): # receives a list of DDFunction
+        return np.sqrt( self.form_inner_prod(z.as_vector()) )     
+
+    def dist_energy_fenics(self, z_mech, z_db):
+        return np.sqrt(np.abs(self.form_energy(z_mech.diff(z_db))))  
+
+    def norm_energy_fenics(self, z):
+        return np.sqrt(np.abs(self.form_energy(z)))  
+
     
-
-    def dist_form_fenics(self, z_mech, z_db):
-        n = self.C.shape[0]
-        C_fe = df.Constant(self.C)
-        Cinv_fe = df.Constant(self.CC[n:2*n,n:2*n]) # takes into account alpha
-        
-        deps = z_mech[0] - z_db[0]
-        dsig = z_mech[1] - z_db[1]
-        
-        form = (df.inner(C_fe*deps, deps)*self.dx + 
-                df.inner(Cinv_fe*dsig, dsig)*self.dx + 
-                2*self.omega*df.inner(dsig, deps)*self.dx)
-            
-        return form  
-    
-
-    def dist_energy_fenics(self, z_mech, z_db = None):
-        if(type(z_db) == type(None) ):
-            self.deps.assign(z_mech[0])
-            self.dsig.assign(z_mech[1])
-        else:
-            self.deps.assign(z_mech[0] - z_db[0])
-            self.dsig.assign(z_mech[1] - z_db[1])
-            
-        return np.sqrt( np.abs(df.assemble(self.a_energy)) ) 
-
-    def diagonal(self):
-        return DDMetric(self.C, omega = 0.0, V = self.V, alpha = 1.0, dx = self.dx)
-    
-
     def distance_distTree(self, distTree):
         self.dist_func.vector().set_local(distTree)
         return np.sqrt(df.assemble((self.dist_func**2)*self.dx)) # L2 norm
@@ -179,43 +140,13 @@ class DDMetric:
             return self.C # using the last one
         
         return C
-
-
-    # if(not isPD(self.C)):
-    #     self.C = get_near_psd(self.C)
     
-    # lmax = 600.0
-    
-    # self.C = (lmax/max(lmax, np.max(np.linalg.eigvals(self.C))))*self.C
-    
-    # self.C = nearestPD(self.C)
-    
-    # print(np.linalg.eigvals(self.C))
-    # assert np.all(np.linalg.eigvals(self.C)) > 0, "C is not PD : {0}".format(self.C)
-    # input()
-    
-    # print(self.C)
-    
-    # input()
-    
-    
-    # Id = np.eye(3) 
-    # E11 = np.array([[1., 1., 0.], [1., 1., 0.], [0., 0., 0.]])
-    
-    # b1 = np.dot(Cest.flatten(), Id.flatten())
-    # b2 = np.dot(Cest.flatten(), E11.flatten())
-    
-    # lamb = (3*b1 - 2*b2)/8
-    # mu = (2*b2 - b1)/8
-    
-    # self.C = lamb*E11 + 2*mu*Id
-    # U, sig, VT = np.linalg.svd(self.DB.reshape((-1,6)) ,full_matrices = False)
-    
-    # A = np.diag(sig[:3])@VT[:3,:6]
-    
-    # Cest = A[:3,3:6]@np.linalg.inv(A[:3,:3])
-    
-    # self.C = 0.5*(Cest + Cest.T) 
-    
-    # print(self.C)
-    
+    @staticmethod
+    def __standard_block_structure(C):
+        n = C.shape[0]
+        CC = np.zeros((2*n,2*n))
+        CC[0:n,0:n] = C
+        CC[n:2*n,n:2*n] =np.linalg.inv(C)
+        
+        return CC
+        

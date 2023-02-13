@@ -10,7 +10,7 @@ import numpy as np
 import dolfin as df
 import ufl
 
-from ddfenics.dd.ddfunction import DDFunction
+import ddfenics as dd 
 
 class DDProblemBase:
     
@@ -20,8 +20,8 @@ class DDProblemBase:
         self.Uh, self.Sh = spaces 
         self.metric = metric
         
-        self.z_mech = [DDFunction(self.Sh), DDFunction(self.Sh)] 
-        self.z_db = [DDFunction(self.Sh), DDFunction(self.Sh)] 
+        self.z_mech = dd.DDState([dd.DDFunction(self.Sh), dd.DDFunction(self.Sh)])
+        self.z_db = dd.DDState([dd.DDFunction(self.Sh), dd.DDFunction(self.Sh)]) 
         self.strain_dim = self.Sh.num_sub_spaces()
         
         self.L = L

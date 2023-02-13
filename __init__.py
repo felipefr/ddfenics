@@ -14,3 +14,5 @@ from .dd.ddproblem_base import DDProblemBase
 from .dd.ddproblem_generic import DDProblemGeneric as DDProblem
 from .dd.ddproblem_infinitesimalstrain import DDProblemInfinitesimalStrain
 from .dd.ddproblem_poisson import DDProblemPoisson
+from .dd.ddsearch import DDSearch
+from .dd.ddstate import DDState
