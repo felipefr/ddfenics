@@ -13,10 +13,10 @@ df.set_log_level(50)
 
 class DDSpace(df.FunctionSpace):
     
-    def __init__(self, Uh, dim, representation = 'Quadrature', degree_quad = None):
+    def __init__(self, Uh, dim, representation = 'Quadrature', degree_quad_ = None): # degree_quad seems a keyword
 
         self.representation = representation
-        self.degree_quad = degree_quad if degree_quad else Uh.ufl_element().degree()
+        self.degree_quad_ = degree_quad_ if degree_quad_ else Uh.ufl_element().degree()
         
         if(representation == 'Quadrature'):
             
@@ -34,14 +34,14 @@ class DDSpace(df.FunctionSpace):
 
             
             self.Qe = df.VectorElement("Quadrature", Uh.ufl_cell(), 
-                                       degree = degree_quad, dim = dim, quad_scheme='default')
+                                       degree = self.degree_quad_, dim = dim, quad_scheme='default')
             
             
-            self.metadata = {"quadrature_degree": degree_quad, "quadrature_scheme": "default"}
+            self.metadata = {"quadrature_degree": self.degree_quad_, "quadrature_scheme": "default"}
             self.dxm = df.Measure( 'dx', Uh.mesh(), metadata= self.metadata)
             
         elif(representation == "DG"):
-            self.Qe = df.VectorElement("DG", Uh.ufl_cell(), degree = self.degree_quad - 1, dim = dim)
+            self.Qe = df.VectorElement("DG", Uh.ufl_cell(), degree = self.degree_quad_ - 1, dim = dim)
             self.dxm = df.Measure('dx', Uh.mesh())
             
 

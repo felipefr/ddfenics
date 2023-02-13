@@ -18,10 +18,7 @@ import numpy as np
 import dolfin as df
 import math
 
-from sklearn.neighbors import KDTree
-from sklearn.neighbors import BallTree
-from sklearn.neighbors import NearestNeighbors
-
+from sklearn.decomposition import PCA
 
 class DDMetric:
     def __init__(self, C = None, omega = 0.0, alpha = 1.0, V = None, dx = None, ddmat = None):
@@ -38,13 +35,11 @@ class DDMetric:
         if(not isinstance(C, type(None))): # if it's not None
             self.reset(C)
         else:
-            self.reset(self.__estimateC(ddmat.DB))
+            self.reset(self.estimateC(ddmat.DB))
             
         if(type(self.V) != type(None)):
             self.set_fenics_metric()
-        
-        self.modelTree = NearestNeighbors(n_neighbors=1, algorithm = 'ball_tree', metric='euclidean') 
-        
+                
         self.sh0 = self.V.get_scalar_space()
         self.dist_func = df.Function(self.sh0)
 
@@ -77,6 +72,7 @@ class DDMetric:
     def normL(self,state):
         return np.linalg.norm(self.transformL(state))
 
+    # update by changing the constant
     def set_fenics_metric(self):
         n = self.C.shape[0]
         C_fe = df.Constant(self.C)
@@ -131,31 +127,42 @@ class DDMetric:
             self.deps.assign(z_mech[0] - z_db[0])
             self.dsig.assign(z_mech[1] - z_db[1])
             
-        return np.sqrt( df.assemble(self.a_energy) ) 
+        return np.sqrt( np.abs(df.assemble(self.a_energy)) ) 
 
     def diagonal(self):
         return DDMetric(self.C, omega = 0.0, V = self.V, alpha = 1.0, dx = self.dx)
     
-    def fitTree(self,  DB):
-        self.modelTree.fit(self.transformL(DB))        
-        return self.modelTree
-    
-    def findNeighbours(self, states):
-        distTree , map = self.modelTree.kneighbors(self.transformL(states)) # dist and map
-        
-        return self.distance_distTree(distTree), distTree, map 
 
     def distance_distTree(self, distTree):
         self.dist_func.vector().set_local(distTree)
         return np.sqrt(df.assemble((self.dist_func**2)*self.dx)) # L2 norm
 
     
-    def estimateC(self, DB):
-        return self.__estimateC(DB)
-    
-    def __estimateC(self, DB):
+    def estimateC(self, DB, method = 'eigendecomp'):
+        if(method == 'PCA'):
+            return self.__estimateC_PCA(DB)
+        elif(method == 'eigendecomp'):
+            return self.__estimateC_eigen_decomposition(DB)
+
+
+    def __estimateC_PCA(self, DB):
         strain_dim = DB.shape[-1]
+        pca = PCA(n_components = strain_dim)
+        pca.fit(DB.reshape((-1,2*strain_dim)))
+        
+        Cest = pca.components_[:,strain_dim:]@np.linalg.inv(pca.components_[:,:strain_dim])    
+        
+        C = 0.5*(Cest + Cest.T) 
     
+        import ddfenics.utils.nearestPD as nearestPD
+        if(not nearestPD.isPD(C)):
+            return self.C # using the last one
+        
+        return C
+    
+    def __estimateC_eigen_decomposition(self, DB):
+        strain_dim = DB.shape[-1]
+        
         Corr = DB.reshape((-1,2*strain_dim)).T@DB.reshape((-1,2*strain_dim))
         sig, U = np.linalg.eigh(Corr)
     
@@ -167,6 +174,10 @@ class DDMetric:
         
         C = 0.5*(Cest + Cest.T) 
     
+        import ddfenics.utils.nearestPD as nearestPD
+        if(not nearestPD.isPD(C)):
+            return self.C # using the last one
+        
         return C
 
 

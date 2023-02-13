@@ -36,18 +36,23 @@ class DDFunction(df.Function):
     def data(self):        
         return self.vector().get_local()[:].reshape((-1, self.n)) 
 
-    def update(self, d): # Maybe improve perfomance
+    def update(self, d):
         self.projector(d)
     
     def __update_with_array(self, d):
+        
         self.vector().set_local(d.flatten())
 
     def __update_with_function(self, d):
-        self.assign(d)
         
-    @staticmethod
-    def split(w):
-        return w[0], w[1]
+        if(d.function_space().ufl_element().family() == self.V.ufl_element().family()):
+            self.assign(d)
+        else: 
+            self.__update_with_array(d.vector().get_local())
+        
+    # @staticmethod
+    # def split(self):
+    #     return self[0], self[1]
     
     def get_cartesian_product(Vlist):
         return [DDFunction(V) for V in Vlist]

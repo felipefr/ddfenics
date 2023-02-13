@@ -19,10 +19,10 @@ import copy
 
 class DDProblemInfinitesimalStrain(DDProblemBase):
     def __init__(self, spaces, grad, L, bcs, metric,  
-                 form_compiler_parameters = {}, bcsPF = []):
+                 form_compiler_parameters = {}, bcsPF = [], is_accelerated = True):
     
         super().__init__(spaces, grad, L, bcs, metric,  
-                     form_compiler_parameters, bcsPF)
+                     form_compiler_parameters, bcsPF, is_accelerated)
         
         
     def create_problem(self):

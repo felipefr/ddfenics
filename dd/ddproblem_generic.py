@@ -20,6 +20,7 @@ import copy
 class DDProblemGeneric(DDProblemBase):
     def __init__(self, spaces, a, L, bcs, metric,  
                  form_compiler_parameters = {}, bcsPF = []):
+    
         self.a = a 
         super().__init__(spaces, a.grad, L, bcs, metric,  
                      form_compiler_parameters, bcsPF)

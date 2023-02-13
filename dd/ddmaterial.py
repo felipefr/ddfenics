@@ -10,10 +10,11 @@ Created on Fri Jan  6 11:42:45 2023
 import dolfin as df
 import numpy as np
 import matplotlib.pyplot as plt
+import fetricks as ft
 
 class DDMaterial:
     
-    def __init__(self, DB, addzero=True, shuffle=1, setStressFunctions = True):
+    def __init__(self, DB, addzero=True, shuffle=1):
         
         if(type(DB) == type('s')):
             self.DB = self.read_data(DB)
@@ -53,7 +54,7 @@ class DDMaterial:
         return data
 
     def write_data(self, datafile):
-        np.savetxt(datafile, self.DB, comments = '', fmt='%.8e', 
+        np.savetxt(datafile, self.DB.reshape((-1,2*self.strain_dim)), comments = '', fmt='%.8e', 
                    header = '1.0 \n%d 2 %d %d'%(len(self.DB), self.strain_dim, self.strain_dim) )
 
     def addZeroState(self):
@@ -93,3 +94,4 @@ class DDMaterial:
         
         if(type(namefig) is not type(None)):            
             plt.savefig(namefig)
+            
