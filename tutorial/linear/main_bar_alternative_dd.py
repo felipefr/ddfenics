@@ -157,7 +157,7 @@ from ddfenics.dd.ddproblem_generic import DDProblemGeneric as DDProblem # Generi
 from ddfenics.dd.ddsolver import DDSolver
 
 # replaces df.LinearVariationalProblem(a, b, uh, bcs = [bcL])
-problem = DDProblem(spaces, a, b, [bcL], metric = dddist) 
+problem = DDProblem(spaces, ft.symgrad_mandel, a, b, [bcL], metric = dddist) 
 
 sol = problem.get_sol()
 
