@@ -4,6 +4,14 @@
 Created on Wed Jan 5 17:41:09 2023
 
 @author: felipe
+
+This file is part of ddfenics, a FEniCs-based (Model-Free) Data-driven 
+Computational Mechanics implementation.
+
+Copyright (c) 2022-2023, Felipe Rocha.
+See file LICENSE.txt for license information.
+Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
+<f.rocha.felipe@gmail.com>
 """
 
 import dolfin as df 

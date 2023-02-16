@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jan  6 11:44:55 2023
+
+Created on Thu Jan 27 14:18:12 2022
+Factorized on Fri Jan  6 11:44:55 2023
 
 @author: ffiguere
-"""
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jan 27 14:18:12 2022
+This file is part of ddfenics, a FEniCs-based (Model-Free) Data-driven 
+Computational Mechanics implementation.
 
-@author: felipe
+Copyright (c) 2022-2023, Felipe Rocha.
+See file LICENSE.txt for license information.
+Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
+<f.rocha.felipe@gmail.com>
+
 """
 
 import numpy as np

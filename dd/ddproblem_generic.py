@@ -4,6 +4,15 @@
 Created on Tue Jan 10 23:26:49 2023
 
 @author: ffiguere
+
+This file is part of ddfenics, a FEniCs-based (Model-Free) Data-driven 
+Computational Mechanics implementation.
+
+Copyright (c) 2022-2023, Felipe Rocha.
+See file LICENSE.txt for license information.
+Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
+<f.rocha.felipe@gmail.com>
+
 """
 
 import numpy as np

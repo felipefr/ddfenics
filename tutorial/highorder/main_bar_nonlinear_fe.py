@@ -6,8 +6,15 @@ Created on Thu Jan 19 21:27:57 2023
 @author: ffiguere
 """
 
-#!/usr/bin/env python
-# coding: utf-8
+"""
+This file is part of ddfenics, a FEniCs-based (Model-Free) Data-driven 
+Computational Mechanics implementation.
+
+Copyright (c) 2022-2023, Felipe Rocha.
+See file LICENSE.txt for license information.
+Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
+<f.rocha.felipe@gmail.com>
+"""
 
 # 0) **Imports**
 
