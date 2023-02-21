@@ -3,7 +3,7 @@
 """
 Created on Thu Jan 27 14:22:08 2022
 
-@author: ffiguere
+@author: felipe
 
 This file is part of ddfenics, a FEniCs-based (Model-Free) Data-driven 
 Computational Mechanics implementation.
@@ -24,18 +24,26 @@ import ddfenics as dd
 
 class DDSolver:
     
-    def __init__(self, problem, search):
+    def __init__(self, problem, ddmat, search=None, opInit = 'random', seed = 0):
                 
         self.problem = problem
-        self.search = search
-
-        # shortcuts
-        self.ddmat = self.search.ddmat
-        self.DB = self.ddmat.DB.view()
+        self.DB = ddmat.DB.view()
+        
+        # distance function
         self.metric = self.problem.metric    
         self.dx = self.problem.dx
 
-        # error metrics        
+        # build tree for database
+        self.metric = self.problem.metric 
+    
+        if(search):
+            self.search = search
+        else:    
+            self.search = dd.DDSearch(self.metric)
+        
+        self.search.fit(self.DB)
+        self.search.init_map(opInit, seed, ng = self.problem.z_mech[0].ng, Nd = len(self.DB))
+        
         self.hist = {'distance' : [], 'relative_distance': [], 'relative_energy': [], 'sizeDB': []}
         self.calls_hist = {}
         self.calls_hist['distance'] = lambda m, m_ref, m0 : m
@@ -79,7 +87,7 @@ class DDSolver:
     def project_onto_data(self):
         start = timer()
         self.search.find_neighbours(self.problem.get_state_mech_data())
-        self.problem.update_state_db(self.ddmat.DB[self.search.map[:,0],:,:])
+        self.problem.update_state_db(self.DB[self.search.map[:,0],:,:])
         end = timer()
         return end - start
 

@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-
-Created on Thu Jan 27 14:18:12 2022
-Factorized on Fri Jan  6 11:44:55 2023
+Created on Fri Jan  6 11:44:55 2023
 
 @author: ffiguere
 
@@ -14,16 +12,20 @@ Copyright (c) 2022-2023, Felipe Rocha.
 See file LICENSE.txt for license information.
 Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
 <f.rocha.felipe@gmail.com>
-
 """
 
 import numpy as np
 import dolfin as df
+import scipy
+
+import copy
 
 from sklearn.decomposition import PCA
 
 class DDMetric:
-    def __init__(self, C = None, block_structure = "standard", V = None, dx = None, ddmat = None):
+    def __init__(self, C = None, V = None, dx = None, ddmat = None,
+                 block_structure = "standard", C_estimator_method = "eigendecomp"):
+        
         self.V = V
         self.block_structure = block_structure
         
@@ -43,6 +45,8 @@ class DDMetric:
                 
         self.sh0 = self.V.get_scalar_space()
         self.dist_func = df.Function(self.sh0)
+        
+        self.C_estimator_method = C_estimator_method
 
     def reset(self, C):
         self.C = C
@@ -102,14 +106,31 @@ class DDMetric:
         return np.sqrt(df.assemble((self.dist_func**2)*self.dx)) # L2 norm
 
     
-    def estimateC(self, DB, method = 'eigendecomp'):
+    def estimateC(self, DB):
+        method = self.C_estimator_method
+        
         if(method == 'PCA'):
-            return self.__estimateC_PCA(DB)
+            C = self.estimateC_PCA(DB)
         elif(method == 'eigendecomp'):
-            return self.__estimateC_eigen_decomposition(DB)
-
-
-    def __estimateC_PCA(self, DB):
+            C = self.estimateC_eigen_decomposition(DB)
+        elif(method == 'LSQ'):
+            C = self.estimateC_leastsquares(DB)
+        elif(method == 'sylvester'):
+            C = self.estimateC_sylvester(DB)
+        elif(method == 'sylvester_C'):
+            C = self.estimateC_sylvester_C(DB)
+        else:
+            print("choose a appropriate C estimation method: {0} does not exist".format(method))
+            input()
+        
+        import ddfenics.utils.nearestPD as nearestPD
+        if(not nearestPD.isPD(C)):
+            return copy.deepcopy(self.C) # using the last one
+        else:
+            return C
+        
+    @staticmethod
+    def estimateC_PCA(DB):
         strain_dim = DB.shape[-1]
         pca = PCA(n_components = strain_dim)
         pca.fit(DB.reshape((-1,2*strain_dim)))
@@ -118,13 +139,10 @@ class DDMetric:
         
         C = 0.5*(Cest + Cest.T) 
     
-        import ddfenics.utils.nearestPD as nearestPD
-        if(not nearestPD.isPD(C)):
-            return self.C # using the last one
-        
         return C
     
-    def __estimateC_eigen_decomposition(self, DB):
+    @staticmethod
+    def estimateC_eigen_decomposition(DB):
         strain_dim = DB.shape[-1]
         
         Corr = DB.reshape((-1,2*strain_dim)).T@DB.reshape((-1,2*strain_dim))
@@ -137,13 +155,54 @@ class DDMetric:
         Cest = U[strain_dim:2*strain_dim,:strain_dim]@np.linalg.inv(U[:strain_dim,:strain_dim])    
         
         C = 0.5*(Cest + Cest.T) 
-    
-        import ddfenics.utils.nearestPD as nearestPD
-        if(not nearestPD.isPD(C)):
-            return self.C # using the last one
         
         return C
     
+    @staticmethod
+    def estimateC_leastsquares(DB):
+        strain_dim = DB.shape[-1]
+        
+        Corr_EE = DB[:,0,:].T @ DB[:,0,:]
+        Corr_SE = DB[:,1,:].T @ DB[:,0,:]
+        Corr_EE = 0.5*(Corr_EE + Corr_EE.T)
+        Corr_SE = 0.5*(Corr_SE + Corr_SE.T)
+        C = Corr_SE@np.linalg.inv(Corr_EE)
+        C = 0.5*(C + C.T) 
+    
+        return C
+    
+    # Sylvester equation is found when performing a leastsquares imposing symmetry for C
+    @staticmethod
+    def estimateC_sylvester_C(DB):
+        strain_dim = DB.shape[-1]
+        
+        Corr_EE = DB[:,0,:].T @ DB[:,0,:]
+        Corr_SE = DB[:,1,:].T @ DB[:,0,:]
+        
+        # AX + BX = Q ==> Corr_EE*C + C*Corr_EE = (Corr_SE + Corr_SE.T) 
+        C = scipy.linalg.solve_sylvester(Corr_EE, Corr_EE, Corr_SE + Corr_SE.T)
+
+        return C
+
+    # Sylvester equation is found when performing a leastsquares imposing symmetry for Cinv
+    @staticmethod
+    def estimateC_sylvester_Cinv(DB):
+        strain_dim = DB.shape[-1]
+        
+        Corr_SS = DB[:,1,:].T @ DB[:,1,:]
+        Corr_ES = DB[:,0,:].T @ DB[:,1,:]
+        
+        # AX + BX = Q ==> Corr_SS*Cinv + Cinv*Corr_SS = (Corr_ES + Corr_ES.T) 
+        Cinv = scipy.linalg.solve_sylvester(Corr_SS, Corr_SS, Corr_ES + Corr_ES.T)
+
+        return np.linalg.inv(Cinv)
+
+    # Average sylvester for C and Cinv
+    @staticmethod
+    def estimateC_sylvester(DB):
+        return 0.5*( DDMetric.estimateC_sylvester_C(DB) + DDMetric.estimateC_sylvester_Cinv(DB))
+
+
     @staticmethod
     def __standard_block_structure(C):
         n = C.shape[0]

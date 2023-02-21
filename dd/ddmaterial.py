@@ -4,6 +4,14 @@
 Created on Fri Jan  6 11:42:45 2023
 
 @author: ffiguere
+
+This file is part of ddfenics, a FEniCs-based (Model-Free) Data-driven 
+Computational Mechanics implementation.
+
+Copyright (c) 2022-2023, Felipe Rocha.
+See file LICENSE.txt for license information.
+Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
+<f.rocha.felipe@gmail.com>
 """
 
 
@@ -94,4 +102,7 @@ class DDMaterial:
         
         if(type(namefig) is not type(None)):            
             plt.savefig(namefig)
+                        
+            
+            
             
