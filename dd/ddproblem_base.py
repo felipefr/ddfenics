@@ -17,8 +17,6 @@ Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
 
 import numpy as np
 import dolfin as df
-import ufl
-
 import ddfenics as dd 
 
 class DDProblemBase:

@@ -15,12 +15,8 @@ Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
 
 """
 
-import math
 import numpy as np
-import dolfin as df
 from timeit import default_timer as timer 
-
-import ddfenics as dd
 
 class DDSolver:
     

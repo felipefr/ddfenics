@@ -14,11 +14,8 @@ Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
 <f.rocha.felipe@gmail.com>
 """
 
-
-import dolfin as df
 import numpy as np
 import matplotlib.pyplot as plt
-import fetricks as ft
 
 class DDMaterial:
     

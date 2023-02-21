@@ -15,18 +15,11 @@ Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
 
 """
 
-import numpy as np
 import dolfin as df
-import ufl
-
 from fetricks.fenics.la.wrapper_solvers import BlockSolver
-from ddfenics.dd.ddfunction import DDFunction
-from ddfenics.dd.ddproblem_base import DDProblemBase
-import fetricks as ft
+import ddfenics as dd
 
-import copy
-
-class DDProblemInfinitesimalStrain(DDProblemBase):
+class DDProblemInfinitesimalStrain(dd.DDProblemBase):
     def __init__(self, spaces, grad, L, bcs, metric,  
                  form_compiler_parameters = {}, bcsPF = [], is_accelerated = True):
     

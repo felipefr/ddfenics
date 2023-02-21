@@ -18,7 +18,6 @@ Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
 # from numba import jit
 import dolfin as df 
 import numpy as np
-import ufl
 from fetricks.fenics.la.wrapper_solvers import LocalProjector
 from functools import singledispatch
 
