@@ -27,8 +27,10 @@ class DDProblemBase:
         self.Uh, self.Sh = spaces 
         self.metric = metric
         
-        self.z_mech = dd.DDState([dd.DDFunction(self.Sh), dd.DDFunction(self.Sh)])
-        self.z_db = dd.DDState([dd.DDFunction(self.Sh), dd.DDFunction(self.Sh)]) 
+        self.z_mech = dd.DDState([dd.DDFunction(self.Sh, name = "strain_mech"), 
+                                  dd.DDFunction(self.Sh, name = "stress_mech")])
+        self.z_db = dd.DDState([dd.DDFunction(self.Sh, name = "strain_db"), 
+                                dd.DDFunction(self.Sh, name = "stress_db")]) 
         self.strain_dim = self.Sh.num_sub_spaces()
         
         self.L = L

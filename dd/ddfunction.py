@@ -20,16 +20,18 @@ import dolfin as df
 import numpy as np
 from fetricks.fenics.la.wrapper_solvers import LocalProjector
 from functools import singledispatch
+import fetricks as ft
 
 # Class to convert raw data to fenics tensorial function objects (and vice-versa)    
 class DDFunction(df.Function):
     
-    def __init__(self, V, dxm = None, name = ''):
+    def __init__(self, V, dxm = None, name = '', 
+                 inner_representation = 'quadrature', outer_representation = 'uflacs'):
         super().__init__(V, name = name)  
         self.mesh = V.mesh()
         self.V = self.function_space()
         self.dxm = dxm if dxm else V.dxm
-        self.projector = LocalProjector(self.V, self.dxm, sol = self)
+        self.projector = LocalProjector(self.V, self.dxm, self, inner_representation, outer_representation)
         
         self.n = self.V.num_sub_spaces()
         self.nel = self.mesh.num_cells()
@@ -40,15 +42,15 @@ class DDFunction(df.Function):
         self.update.register(np.ndarray, self.__update_with_array)
         self.update.register(df.Function, self.__update_with_function)
 
-    def data(self):        
+    def data(self):
         return self.vector().get_local()[:].reshape((-1, self.n)) 
 
     def update(self, d):
         self.projector(d)
     
     def __update_with_array(self, d):
-        
-        self.vector().set_local(d.flatten())
+        # self.vector().set_local(d.flatten())
+        ft.setter(self, d.flatten()) # supposed to be faster, but no difference noticed
 
     def __update_with_function(self, d):
         

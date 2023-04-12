@@ -16,6 +16,7 @@ Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
 
 import numpy as np
 import matplotlib.pyplot as plt
+import fetricks as ft
 
 class DDMaterial:
     
@@ -33,6 +34,10 @@ class DDMaterial:
 
         if(addzero):
             self.addZeroState()
+        
+    def __add__(self, ddmat):
+        return DDMaterial(np.concatenate((self.DB, ddmat.DB), axis = 0))
+        
         
     def read_data(self, filename):
         file = open(filename,'r')
@@ -101,5 +106,43 @@ class DDMaterial:
             plt.savefig(namefig)
                         
             
+    def plotDB_3d(self, namefig = None):
+
+        color = lambda d : np.linspace(1,d.shape[0],d.shape[0])
+
+        data = self.DB.reshape((-1,self.DB.shape[1]*self.DB.shape[2]))
+        
+        fig,(ax1,ax2) = plt.subplots(1,2)
+        
+        
+        ax1.set_xlabel(r'$\epsilon_{xx}+\epsilon_{yy}$')
+        ax1.set_ylabel(r'$\sigma_{xx}+\sigma_{yy}$')
+        ax1.scatter(data[:,0] + data[:,1] + data[:,2], data[:,6] + data[:,7] + data[:,8], s = 20,
+                    c = color(data), marker = '.')
+        
+        ax1.grid()
+        
+        ax2.set_xlabel(r'$\epsilon_{xy}$')
+        ax2.set_ylabel(r'$\sigma_{xy}$')
+        ax2.scatter(data[:,3], data[:,9],  s = 20,
+                    c = color(data), marker = '.')
+    
+        ax2.grid()
+        
+        if(type(namefig) is not type(None)):            
+            plt.savefig(namefig)
             
+    # only works in 2d    
+    def extend_DB_with_rotations(self, add_rotations = []):
+        
+        newStates = []
+        for theta_i in add_rotations:
+            R = ft.conv2d.rotation_mandel(theta_i) # Tensor rotation = Q.T @ A @ Q = R @ [A]_{mandel}
+            
+            newStates.append( np.dot(self.DB, R.T) ) # Z'ijk = Zijp Rkp 
+        
+        DBnew = np.concatenate([self.DB] + newStates, axis = 0)
+        
+        return DBnew
+                                
             

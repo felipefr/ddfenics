@@ -34,6 +34,7 @@ class DDSearch:
     def find_neighbours(self, z, kneigh = 1):
         self.local_dist , self.map = self.modelTree.kneighbors(self.metric.transformL(z), kneigh) # dist and map
         self.global_dist = self.metric.distance_distTree(self.local_dist[:,0])
+        return self.ddmat.DB[self.map[:,0],:,:] 
     
     @staticmethod
     def init_map(op, seed, ng, Nd):

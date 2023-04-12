@@ -35,3 +35,6 @@ class DDState(object):
     
     def __getitem__(self, i):
         return self.z[i]
+    
+    def copy(self, deepcopy = True):
+        return DDState([z_i.copy(deepcopy = True) for z_i in self.z])

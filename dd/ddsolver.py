@@ -30,6 +30,7 @@ class DDSolver:
         self.DB = self.ddmat.DB.view()
         self.metric = self.problem.metric    
         self.dx = self.problem.dx
+        self.sol = self.problem.get_sol()
 
         # error metrics        
         self.hist = {'distance' : [], 'relative_distance': [], 'relative_energy': [], 'sizeDB': []}
@@ -39,6 +40,7 @@ class DDSolver:
         self.calls_hist['relative_energy'] = lambda m, m_ref, m0 : (m/m_ref)**2 
         self.calls_hist['sizeDB'] = lambda m, m_ref, m0 : len(self.DB)
     
+        
     def solve(self, tol = 0.001, maxit = 100):
         
         total_time_PE = 0.0
@@ -74,8 +76,7 @@ class DDSolver:
         
     def project_onto_data(self):
         start = timer()
-        self.search.find_neighbours(self.problem.get_state_mech_data())
-        self.problem.update_state_db(self.ddmat.DB[self.search.map[:,0],:,:])
+        self.problem.update_state_db(self.search.find_neighbours(self.problem.get_state_mech_data()))
         end = timer()
         return end - start
 
@@ -95,3 +96,10 @@ class DDSolver:
     def append_hist(self, m, m_ref, m0 = 0.0):
         for key in self.hist.keys():
             self.hist[key].append(self.calls_hist[key](m, m_ref, m0))
+
+    def get_sol(self):
+        return self.sol
+    
+    def get_state_mech_data(self):
+        return np.concatenate(tuple([z_i.vector().get_local()[:].reshape((-1, self.problem.strain_dim)) 
+                                     for z_i in self.sol["state_mech"]]) , axis = 1)
