@@ -170,29 +170,29 @@ iofe.exportXDMF_checkpoint_gen("bar_nonlinear_sol.xdmf", fields={'vertex': [uh],
 # In[33]:
 
 
-# Check for alpha = 0.0 for the linear case
-sol_files =  [df.XDMFFile("bar_nonlinear_sol.xdmf"), df.XDMFFile("../linear/bar_sol.xdmf")]
+# Check for alpha = 0.0 for the linear case (don't forget to comment other asserts and change alpha)
+# sol_files =  [df.XDMFFile("bar_nonlinear_sol.xdmf"), df.XDMFFile("../linear/bar_sol.xdmf")]
 
-u = []; eps = []; sig = []
+# u = []; eps = []; sig = []
 
-for file in sol_files:
-    u.append(df.Function(Uh))
-    eps.append(df.Function(Sh))
-    sig.append(df.Function(Sh))
+# for file in sol_files:
+#     u.append(df.Function(Uh))
+#     eps.append(df.Function(Sh))
+#     sig.append(df.Function(Sh))
     
-    file.read_checkpoint(u[-1],"u") 
-    file.read_checkpoint(eps[-1],"eps")
-    file.read_checkpoint(sig[-1],"sig")
+#     file.read_checkpoint(u[-1],"u") 
+#     file.read_checkpoint(eps[-1],"eps")
+#     file.read_checkpoint(sig[-1],"sig")
 
 
-# Check for alpha = 0.0 for the linear case, redo the problem
-print('error L2 disp', np.sqrt(df.assemble( df.inner(u[1] - u[0], u[1] - u[0])*dx) ))
-print('error L2 eps', np.sqrt(df.assemble( df.inner(eps[1] - eps[0], eps[1] - eps[0])*dx) ) )
-print('error L2 sig', np.sqrt(df.assemble( df.inner(sig[1] - sig[0], sig[1] - sig[0])*dx) ) )
+# # Check for alpha = 0.0 for the linear case, redo the problem
+# print('error L2 disp', np.sqrt(df.assemble( df.inner(u[1] - u[0], u[1] - u[0])*dx) ))
+# print('error L2 eps', np.sqrt(df.assemble( df.inner(eps[1] - eps[0], eps[1] - eps[0])*dx) ) )
+# print('error L2 sig', np.sqrt(df.assemble( df.inner(sig[1] - sig[0], sig[1] - sig[0])*dx) ) )
 
-assert np.allclose(u[0].vector().get_local()[:], u[1].vector().get_local()[:])
-assert np.allclose(eps[0].vector().get_local()[:], eps[1].vector().get_local()[:])
-assert np.allclose(sig[0].vector().get_local()[:], sig[1].vector().get_local()[:]) 
+# assert np.allclose(u[0].vector().get_local()[:], u[1].vector().get_local()[:])
+# assert np.allclose(eps[0].vector().get_local()[:], eps[1].vector().get_local()[:])
+# assert np.allclose(sig[0].vector().get_local()[:], sig[1].vector().get_local()[:]) 
 
 
 # In[ ]:

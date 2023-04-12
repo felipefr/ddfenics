@@ -25,12 +25,7 @@ import copy
 import fetricks as ft
 
 # DDfenics imports
-from ddfenics.dd.ddmaterial import DDMaterial 
-from ddfenics.dd.ddmetric import DDMetric
-from ddfenics.dd.ddfunction import DDFunction
-from ddfenics.dd.ddproblem_infinitesimalstrain import DDProblemInfinitesimalStrain as DDProblem
-from ddfenics.dd.ddsolver import DDSolver
-
+import ddfenics as dd
 
 # 1) **Consititutive behaviour Definition**
 
@@ -64,7 +59,7 @@ for i in range(Nd):
     
 np.savetxt(database_file, DD.reshape((-1,6)), header = '1.0 \n%d 2 3 3'%Nd, comments = '', fmt='%.8e', )
 
-ddmat = DDMaterial(database_file)  # replaces sigma_law = lambda u : ...
+ddmat = dd.DDMaterial(database_file)  # replaces sigma_law = lambda u : ...
 ddmat.plotDB()
 
 
@@ -112,7 +107,7 @@ Uh = df.VectorFunctionSpace(mesh, "Lagrange", 1) # Unchanged
 bcL = df.DirichletBC(Uh, df.Constant((0.0, 0.0)), boundary_markers, clampedBndFlag) # Unchanged
 
 # Space for stresses and strains
-Sh0 = DDSpace(Uh, 3 , 'DG') 
+Sh0 = dd.DDSpace(Uh, 3 , 'DG') 
 # Sh0 = df.VectorFunctionSpace(mesh, 'DG', degree = 0 , dim = 3) 
 
 spaces = [Uh, Sh0]
@@ -164,13 +159,14 @@ b = lambda w: df.inner(traction,w)*ds(loadBndFlag)
 
 
 # replaces df.LinearVariationalProblem(a, b, uh, bcs = [bcL])
-metric = DDMetric(ddmat = ddmat, V = Sh0, dx = dx)
-problem = DDProblem(spaces, ft.symgrad_mandel, b, [bcL], metric = metric ) 
+metric = dd.DDMetric(ddmat = ddmat, V = Sh0, dx = dx)
+problem = dd.DDProblemInfinitesimalStrain(spaces, ft.symgrad_mandel, b, [bcL], metric = metric ) 
 sol = problem.get_sol()
 
 start = timer()
 #replaces df.LinearVariationalSolver(problem)
-solver = DDSolver(problem, ddmat, opInit = 'zero')
+search = dd.DDSearch(metric, ddmat, opInit = 'zero')
+solver = dd.DDSolver(problem, search)
 tol_ddcm = 1e-7
 hist = solver.solve(tol = tol_ddcm, maxit = 100);
 
@@ -256,7 +252,7 @@ error_eps = []
 error_sig = []
 
 sol_ref_file =  df.XDMFFile("bar_nonlinear_sol.xdmf")
-sol_ref = {"state" : [DDFunction(Sh0), DDFunction(Sh0)], "u" : df.Function(Uh)}   
+sol_ref = {"state" : [dd.DDFunction(Sh0), dd.DDFunction(Sh0)], "u" : df.Function(Uh)}   
 sol_ref_file.read_checkpoint(sol_ref["u"],"u")
 sol_ref_file.read_checkpoint(sol_ref["state"][0],"eps")
 sol_ref_file.read_checkpoint(sol_ref["state"][1],"sig")
@@ -268,11 +264,12 @@ for Nd_i in Nd_list:
     indexes = np.arange(0,Nd).astype('int')
     np.random.shuffle(indexes)
     DD_i = DD[indexes[:Nd_i], : , : ]
-    ddmat_i = DDMaterial(DD_i)
-    metric_i = DDMetric(ddmat = ddmat_i, V = Sh0, dx = dx)
-    problem_i = DDProblem(spaces, ft.symgrad_mandel, b, [bcL], metric = metric_i) 
+    ddmat_i = dd.DDMaterial(DD_i)
+    metric_i = dd.DDMetric(ddmat = ddmat_i, V = Sh0, dx = dx)
+    problem_i = dd.DDProblemInfinitesimalStrain(spaces, ft.symgrad_mandel, b, [bcL], metric = metric_i) 
     sol_i = problem_i.get_sol()
-    solver_i = DDSolver(problem_i, ddmat, opInit = 'zero', seed = 1)
+    search_i = dd.DDSearch(metric_i, ddmat_i, opInit = 'zero', seed = 1)
+    solver_i = dd.DDSolver(problem_i, search_i)
     solver_i.solve(tol = tol_ddcm, maxit = 100)
     
     hist_list.append(copy.deepcopy(solver_i.hist))
@@ -319,7 +316,6 @@ assert np.allclose(error_sig[-1], 0.014108344008671543)
 
 # After re-execute blocks 5 and 6, the error should be zero machine
 # Still, it's not possible to get error zero-machine precision
-from ddfenics.dd.ddfunction import DDFunction
 
 data = np.concatenate((sol_ref["state"][0].vector().get_local().reshape((-1,3)), 
                        sol_ref["state"][1].vector().get_local().reshape((-1,3))), axis = 1)
@@ -329,6 +325,6 @@ print(np.min(data[:,:3], axis = 0) )
 print(np.max(data[:,:3], axis = 0) )
 
 np.savetxt('database_ref.txt', data, header = '1.0 \n%d 2 3 3'%data.shape[0], comments = '', fmt='%.8e')
-ddmat = DDMaterial('database_ref.txt') 
+ddmat = dd.DDMaterial('database_ref.txt') 
 ddmat.plotDB()
 
