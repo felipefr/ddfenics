@@ -170,9 +170,8 @@ source = c3*df.sin(c1*x[0])*df.cos(c2*x[1])
 # changed 
 P_ext = lambda w : source*w*dx + flux_left*w*ds(leftFlag) + flux_top*w*ds(topFlag)
 
-dddist = dd.DDMetric(ddmat = ddmat, V = Sh0, dx = dx)
+metric = dd.DDMetric(ddmat = ddmat, V = Sh0, dx = dx)
 
-print(dddist.CC)
 
 
 # 6) **Statement and Solving the problem** <br> 
@@ -184,18 +183,19 @@ print(dddist.CC)
 
 uh = df.TrialFunction(Uh)
 vh = df.TestFunction(Uh)
-a = dd.DDBilinear(dddist, df.grad, uh, vh, dx = Sh0.dxm)
+a = dd.DDBilinear(metric, df.grad, uh, vh, dx = Sh0.dxm)
 
 
 # replaces df.LinearVariationalProblem(a, b, uh, bcs = [bcL])
-problem = dd.DDProblemPoisson(spaces, df.grad, L = P_ext, bcs = bcs, metric = dddist) 
-# problem = DDProblemGeneric(spaces, a, L = P_ext(vh), bcs = bcs, metric = dddist) 
+problem = dd.DDProblemPoisson(spaces, df.grad, L = P_ext, bcs = bcs, metric = metric) 
+# problem = DDProblemGeneric(spaces, a, L = P_ext(vh), bcs = bcs, metric = metric) 
 sol = problem.get_sol()
 
 start = timer()
 
 #replaces df.LinearVariationalSolver(problem)
-solver = dd.DDSolver(problem, ddmat, opInit = 'zero', seed = 2)
+search = dd.DDSearch(metric, ddmat, opInit = 'zero', seed = 2)
+solver = dd.DDSolver(problem, search)
 tol_ddcm = 1e-8
 solver.solve(tol = tol_ddcm, maxit = 100);
 
