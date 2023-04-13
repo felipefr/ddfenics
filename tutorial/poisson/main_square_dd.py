@@ -288,7 +288,9 @@ output_vtk = "square_dd_vtk.xdmf"
 generate_vtk_db_mech(sol, output_vtk, labels = ["u", "g", "q"])
 
 
-# In[ ]:
+# I don't know why the error in the gradient is so large
+assert( np.allclose(np.array(list(errors.values())),
+                    np.array([4.623696e-02, 8.813123e-02, 1.974890e+00, 2.179316e-02, 1.982428e+00]) ))
 
 
 
