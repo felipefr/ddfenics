@@ -54,7 +54,8 @@ class DDProblemBase:
     
 
     def get_sol(self):
-        return {"state_mech" : self.z_mech ,
+        return {"state" : self.z, # symbolic
+                "state_mech" : self.z_mech ,
                 "state_db": self.z_db ,
                 "u" : self.u }
     

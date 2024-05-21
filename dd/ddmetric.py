@@ -52,6 +52,7 @@ class DDMetric:
         self.C = C
         self.CC = self.block_structure(self.C)
         self.L = np.linalg.cholesky(self.CC) 
+        self.Linv = np.linalg.inv(self.L)
         self.set_fenics_metric()
         
     # Distance functions related (numpy based)
@@ -66,6 +67,9 @@ class DDMetric:
     
     def transformL(self, state):
         return state @ self.L
+    
+    def transformLinv(self, state):
+        return state @ self.Linv
     
     def normL(self,state):
         return np.linalg.norm(self.transformL(state))
@@ -141,40 +145,42 @@ class DDMetric:
         self.dist_func.vector().set_local(distTree)
         return np.sqrt(df.assemble((self.dist_func**2)*self.dx)) # L2 norm
 
-    
+   
     def estimateC(self, DB):
-        method = self.C_estimator_method
-        
-        if(method == 'PCA'):
-            C = self.estimateC_PCA(DB)
-        elif(method == 'eigendecomp'):
-            C = self.estimateC_eigen_decomposition(DB)
-        elif(method == 'LSQ'):
-            C = self.estimateC_leastsquares(DB)
-        elif(method == 'sylvester'):
-            C = self.estimateC_sylvester(DB)
-        elif(method == 'sylvester_C'):
-            C = self.estimateC_sylvester_C(DB)
-        elif(method == 'sylvester_Cinv'):
-            C = self.estimateC_sylvester_Cinv(DB)
-        elif(method == 'sylvester_C_isotropy'):
-            C = self.estimateC_sylvester_C_isotropy(DB)
-        else:
-            print("choose a appropriate C estimation method: {0} does not exist".format(method))
-            input()
-        
+        C = self.estimateC_static(DB, self.C_estimator_method)
+        self.C = self.check_positiveness(C, C_default = self.C)
+        return self.C
+
+    @staticmethod 
+    def check_positiveness(C, C_default = None):
         import ddfenics.utils.nearestPD as nearestPD
         if(not nearestPD.isPD(C)):
             print("estimation is not PD --> using last default")
             print("eigenvalues:")
             print(np.linalg.eig(C)[0])
-            if(self.C):
-                return copy.deepcopy(self.C) # using the last one
+            if(type(C_default) != type(None)):
+                return copy.deepcopy(C_default) # using the last one
             else:
                 print("a default value for C should be provided")
                 input()
         else:
             return C
+        
+    @staticmethod
+    def estimateC_static(DB, method):
+
+        dict_method = {'PCA': DDMetric.estimateC_PCA,
+                       'eigendecomp': DDMetric.estimateC_eigen_decomposition,
+                       'LSQ': DDMetric.estimateC_leastsquares,
+                       'sylvester': DDMetric.estimateC_sylvester,
+                       'sylvester_cov': DDMetric.estimateC_sylvester_cov,
+                       'sylvester_cov_C': DDMetric.estimateC_sylvester_cov_C,
+                       'sylvester_cov_Cinv': DDMetric.estimateC_sylvester_cov_Cinv,
+                       'sylvester_C': DDMetric.estimateC_sylvester,
+                       'sylvester_Cinv': DDMetric.estimateC_sylvester_Cinv,
+                       'sylvester_C_isotropy': DDMetric.estimateC_sylvester_C_isotropy}
+
+        return dict_method[method](DB)
         
     @staticmethod
     def estimateC_PCA(DB):
@@ -261,6 +267,34 @@ class DDMetric:
     @staticmethod
     def estimateC_sylvester(DB):
         return 0.5*( DDMetric.estimateC_sylvester_C(DB) + DDMetric.estimateC_sylvester_Cinv(DB))
+
+
+    # Sylvester equation is found when performing a leastsquares imposing symmetry for C
+    @staticmethod
+    def estimateC_sylvester_cov(DB):
+        return 0.5*( DDMetric.estimateC_sylvester_cov_C(DB) + DDMetric.estimateC_sylvester_cov_Cinv(DB))
+
+    def estimateC_sylvester_cov_C(DB):
+        n_strain = DB.shape[-1]
+        cov = np.cov(DB[:,0,:].T, DB[:,1,:].T)
+        Corr_EE = cov[0:n_strain, 0:n_strain]
+        Corr_SE = cov[n_strain : 2*n_strain, 0:n_strain]
+        
+        # AX + BX = Q ==> Corr_EE*C + C*Corr_EE = (Corr_SE + Corr_SE.T) 
+        C = scipy.linalg.solve_sylvester(Corr_EE, Corr_EE, Corr_SE + Corr_SE.T)
+
+        return C
+    
+    def estimateC_sylvester_cov_Cinv(DB):
+        n_strain = DB.shape[-1]
+        cov = np.cov(DB[:,0,:].T, DB[:,1,:].T)
+        Corr_SE = cov[n_strain : 2*n_strain, 0:n_strain]
+        Corr_SS = cov[n_strain : 2*n_strain, n_strain : 2*n_strain]
+        
+        # AX + BX = Q ==> Corr_EE*C + C*Corr_EE = (Corr_SE + Corr_SE.T) 
+        Cinv = scipy.linalg.solve_sylvester(Corr_SS, Corr_SS, Corr_SE + Corr_SE.T)
+
+        return np.linalg.inv(Cinv)
 
 
     @staticmethod

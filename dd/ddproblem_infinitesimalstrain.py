@@ -51,9 +51,3 @@ class DDProblemInfinitesimalStrain(dd.DDProblemBase):
 
         return blocksolver, z
     
-
-    def get_sol(self):
-        return {"state_mech" : self.z_mech ,
-                "state_db": self.z_db ,
-                "u" : self.u }
-    

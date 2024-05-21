@@ -16,15 +16,15 @@ Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
 """
 
 import dolfin as df
-from fetricks.fenics.la.wrapper_solvers import BlockSolver
 import ddfenics as dd
+import fetricks as ft
 
 class DDProblemPoisson(dd.DDProblemBase):
     def __init__(self, spaces, grad, L, bcs, metric,  
-                 form_compiler_parameters = {}, bcsPF = []):
+                 form_compiler_parameters = {}, bcsPF = [], is_accelerated=True):
     
         super().__init__(spaces, grad, L, bcs, metric,  
-                     form_compiler_parameters, bcsPF)
+                     form_compiler_parameters, bcsPF, is_accelerated=True)
         
         
     def create_problem(self):
@@ -46,14 +46,10 @@ class DDProblemPoisson(dd.DDProblemBase):
         self.problem_comp = df.LinearVariationalProblem(a, f_comp, self.u, self.bcs)
         self.problem_bal = df.LinearVariationalProblem(a, f_bal, self.eta, bcs_eta)
         
-        blocksolver = BlockSolver([self.problem_comp, self.problem_bal]) 
+        blocksolver = ft.BlockSolver([self.problem_comp, self.problem_bal]) 
         z = [self.grad(self.u), self.z_db[1] + self.C*self.grad(self.eta)] # z_mech symbolic
 
         return blocksolver, z
     
-
-    def get_sol(self):
-        return {"state_mech" : self.z_mech ,
-                "state_db": self.z_db ,
-                "u" : self.u }
     
+

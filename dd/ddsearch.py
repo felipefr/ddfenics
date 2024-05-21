@@ -14,11 +14,11 @@ Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
 <f.rocha.felipe@gmail.com>
 
 """
-from sklearn.neighbors import KDTree
-from sklearn.neighbors import BallTree
 from sklearn.neighbors import NearestNeighbors
 import numpy as np
 
+
+# map : Ng x Nneigh -> Nd : it associates for each GP the materials label 
 class DDSearch:
     def __init__(self, metric, ddmat, algorithm = 'ball_tree', norm ='euclidean', opInit = 'zero', seed = 0):
         self.metric = metric
