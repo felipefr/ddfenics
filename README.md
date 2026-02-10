@@ -1,4 +1,4 @@
-
+# WARNING : IN THE CURRENT STATE, THE LIBRARY IS BEING LARGELY MODIFIED. IT'S POSSIBLE SOME OF THE INSTRUCTIONS ARE DEPRECATED.
 # DDFenics (X)
 A (model-free) Data-driven implementation based on fenics (https://github.com/felipefr/ddfenics).
 This version is compatible with Fenicsx 0.10 (still in a transition mode).
