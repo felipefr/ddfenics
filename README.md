@@ -3,6 +3,8 @@
 # dependencies:
 scipy
 scikit-learn
+trame trame-vuetify trame-vtk ipywidgets # Proper visualisation with pyvista inside jupyter
+
 
 # DDFenics (X)
 A (model-free) Data-driven implementation based on fenics (https://github.com/felipefr/ddfenics).

@@ -27,7 +27,6 @@ class DDSpace:
         self.degree_quad = degree_quad if degree_quad else Uh.ufl_element().degree
         self.mesh = Uh.mesh
         self.basix_cell = self.mesh.basix_cell()
-        
     
         if(representation == 'DG'):
             self.dxm = ufl.Measure('dx', self.mesh)
@@ -45,12 +44,6 @@ class DDSpace:
             self.scalar_space = fem.functionspace(self.mesh, self.W0e)
             basix_celltype = getattr(basix.CellType, self.mesh.topology.cell_type.name)
             points, weights = basix.make_quadrature(basix_celltype, self.degree_quad)
-            # basix_celltype = getattr(basix.CellType, self.mesh.topology.cell_type.name)
-            # points, weights = basix.make_quadrature(self.basix_celltype, self.degree_quad)
             self.eval_points = points
             self.weights = weights
             
-            
-
-        # quadrature_points, weights = basix.make_quadrature(basix_celltype, deg_quad)
-

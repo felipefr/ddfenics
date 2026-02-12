@@ -26,6 +26,7 @@ H = 0.5
 Nx = 50
 Ny =  5
 nmandel = 3
+traction = np.array([0.1e-3,-1.0e-3]
 tol_ddcm = 1e-9
 database_file = 'database.txt'
 
@@ -52,7 +53,7 @@ traction_facets = mesh.locate_entities(domain, fdim, traction_boundary)
 traction_facets_tag = mesh.meshtags(domain, fdim, traction_facets, np.full_like(traction_facets,1))
 ds = ufl.Measure("ds",domain=domain, subdomain_data=traction_facets_tag)
 
-T = fem.Constant(domain,np.array([0.1e-3,-1.0e-3],dtype=PETSc.ScalarType))
+T = fem.Constant(domain, traction, dtype=PETSc.ScalarType))
 
 # loading database
 ddmat = dd.DDMaterial(database_file, addzero = False, shuffle = -1)  # replaces sigma_law = lambda u : ...

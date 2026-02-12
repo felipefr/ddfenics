@@ -31,6 +31,7 @@ H = 0.5
 Nx = 50
 Ny =  5
 nmandel = 3
+traction = np.array([0.1e-3,-1.0e-3]
 
 # Geometrie/Mesh
 domain = mesh.create_rectangle(MPI.COMM_WORLD,[[0.0, 0.0],[L,H]],[Nx,Ny], mesh.CellType.triangle, diagonal = mesh.DiagonalType.right)
@@ -64,7 +65,7 @@ traction_facets = mesh.locate_entities(domain,fdim,traction_boundary)
 traction_facets_tag = mesh.meshtags(domain,fdim,traction_facets,np.full_like(traction_facets,1))
 ds = ufl.Measure("ds",domain=domain,subdomain_data=traction_facets_tag)
 
-T = fem.Constant(domain,np.array([0.1e-3,-1.0e-3],dtype=PETSc.ScalarType))
+T = fem.Constant(domain, traction, dtype=PETSc.ScalarType))
 
 
 # ## Model-based solution

@@ -30,7 +30,8 @@ class DDProblemBase:
                                   dd.DDFunction(self.Sh, self.Sh.dxm, name = "stress_mech")])
         self.z_db = dd.DDState([dd.DDFunction(self.Sh, self.Sh.dxm, name = "strain_db"), 
                                 dd.DDFunction(self.Sh, self.Sh.dxm, name = "stress_db")]) 
-        self.strain_dim = self.Sh.space.num_sub_spaces
+        
+        self.strain_dim = self.Sh.space.value_shape[0]
         
         self.L = L
         self.dx = self.Sh.dxm

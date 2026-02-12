@@ -6,6 +6,7 @@
 *.h5
 *.mph.lock
 *.txt
+*.bp/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

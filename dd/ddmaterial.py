@@ -79,11 +79,13 @@ class DDMaterial:
         
     
     # only for 2d
-    def plotDB(self, namefig = None):
+    def plotDB(self, namefig = None, fig_id = 1):
 
         color = lambda d : np.linspace(1,d.shape[0],d.shape[0])
 
         data = self.DB.reshape((-1,self.DB.shape[1]*self.DB.shape[2]))
+        
+        plt.figure(fig_id)
         
         fig,(ax1,ax2) = plt.subplots(1,2)
         

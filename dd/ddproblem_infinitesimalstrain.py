@@ -33,8 +33,8 @@ class DDProblemInfinitesimalStrain(dd.DDProblemBase):
         
     def create_problem(self):
         
-        self.u = fem.Function(self.Uh)
-        self.eta = fem.Function(self.Uh)
+        self.u = fem.Function(self.Uh, name = "u")
+        self.eta = fem.Function(self.Uh, name = "eta")
 
         self.bcs_eta = self.bcs # this bcs should be always homogenous
         # bcs_eta = [fem.bcs.DirichletBC(b) for b in self.bcs] # creates a copy

@@ -28,9 +28,49 @@ def symgrad_mandel(v): # it was shown somehow to have better performance than do
 def tr_mandel(X):
     return X[0] + X[1]
 
+def tensor2mandel(X):
+    return ufl.as_vector([X[0,0], X[1,1], halfsqrt2*(X[0,1] + X[1,0])])
+
+def mandel2tensor_np(X):
+    return np.array([[X[0], halfsqrt2*X[2]],
+                     [halfsqrt2*X[2], X[1]]])
+
+def tensor2mandel_np(X):
+    return np.array([X[0,0], X[1,1], halfsqrt2*(X[0,1] + X[1,0])])
+
+
+def mandel2tensor(X):
+    return ufl.as_tensor([[X[0], halfsqrt2*X[2]],
+                        [halfsqrt2*X[2], X[1]]])
+
+
 def L2norm_given_form(form, comm):
     val = fem.assemble_scalar(form)
     return np.sqrt(comm.allreduce(val, op=MPI.SUM))
+
+
+def get_indexes_cells(mesh):
+    map_c = mesh.topology.index_map(mesh.topology.dim)
+    num_cells = map_c.size_local + map_c.num_ghosts
+    return np.arange(0, num_cells, dtype=np.int32)
+
+def interpolate_quadrature(ufl_expr, u):
+    V = u.function_space
+    mesh = V.mesh
+    cells = get_indexes_cells(mesh)
+    quadrature_points = V.element.interpolation_points
+    
+    if len(ufl_expr.ufl_shape) == 0:
+        expr_expr = fem.Expression(ufl_expr, quadrature_points)
+        expr_eval = expr_expr.eval(mesh, cells)
+        u.x.array[:] = expr_eval.flatten()[:]
+    else:
+        n = ufl_expr.ufl_shape[0]
+        for i in range(n):
+            expr_expr = fem.Expression(ufl_expr[i], quadrature_points)
+            expr_eval = expr_expr.eval(mesh, cells)
+            u.x.array[i::n] = expr_eval.flatten()[:]
+
 
 # def L2norm(u, dx, comm):
 #     return L2norm_given_form(fem.form(ufl.inner(u, u) * dx), comm)

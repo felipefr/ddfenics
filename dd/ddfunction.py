@@ -71,7 +71,7 @@ class DDFunction(fem.Function):
         self.eval_points = V.eval_points
         self.cells = get_indexes_cells(self.mesh)
         
-        self.n = self.V.num_sub_spaces
+        self.n = V.space.value_shape[0]
         tdim = self.mesh.topology.dim
         self.nel = self.mesh.topology.index_map(tdim).size_global
         self.m = int(self.x.array.shape[0]/(self.n*self.nel)) # local number gauss points
