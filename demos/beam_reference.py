@@ -3,6 +3,8 @@
 """
 Created on Tue Jan 16 17:53:57 2024
 
+Updated to fenicsx 0.10 - Tue Fev 12 2026
+
 @author: felipe
 """
 
@@ -16,20 +18,26 @@ import dolfinx, ufl
 print(f"DOLFINx version: {dolfinx.__version__}")
 print(f"UFL version: {ufl.__version__}")
 
-from dolfinx import fem,mesh,plot
+from dolfinx import fem, mesh, plot
 import dolfinx.fem.petsc
 import ddfenicsx as dd
-import fetricksx as ft
+from ddfenicsx.utils.fetricks import symgrad_mandel, tr_mandel, Id_mandel
 
-# Geometrie/Mesh
+# Parameters
+E = 100.0
+nu = 0.3
 L = 5.0
 H = 0.5
 Nx = 50
 Ny =  5
+nmandel = 3
+
+# Geometrie/Mesh
 domain = mesh.create_rectangle(MPI.COMM_WORLD,[[0.0, 0.0],[L,H]],[Nx,Ny], mesh.CellType.triangle, diagonal = mesh.DiagonalType.right)
 # domain = mesh.create_rectangle(MPI.COMM_WORLD,[[0.0, 0.0],[L,H]],[Nx,Ny], mesh.CellType.quadrilateral)
 tdim = domain.topology.dim
-nmandel = 3
+
+# Functional space
 V = fem.functionspace(domain,("Lagrange",1,(tdim,)))
 
 
@@ -64,17 +72,15 @@ T = fem.Constant(domain,np.array([0.1e-3,-1.0e-3],dtype=PETSc.ScalarType))
 # In[6]:
 
 
-# Constitutive parameters
-E = 100.0
-nu = 0.3
+# Constitutive model (as expressions)
 lam = nu*E/(1.0+nu)/(1.0-2*nu)
 mu2 = E/(1.0+nu)
 
-# Constitutive model (as expressions)
 def epsilon(u):
-    return ft.symgrad_mandel(u)
+    return symgrad_mandel(u)
+
 def sigma_hooke(e):
-    return lam*ft.tr_mandel(e)*ft.Id_mandel_df + mu2*e
+    return lam*tr_mandel(e)*Id_mandel + mu2*e
 
 # Weak form
 u = ufl.TrialFunction(V)
@@ -87,21 +93,23 @@ b = ufl.dot(T,v)*ds
 
 
 # Solve the problem
-std_problem = fem.petsc.LinearProblem(a,b,bcs=[bc],petsc_options={"ksp_type": "preonly","pc_type": "lu"})
+std_problem = fem.petsc.LinearProblem(a,b,bcs=[bc],
+                                      petsc_options={"ksp_type": "preonly","pc_type": "lu"},
+                                      petsc_options_prefix='elasticity')
 std_uh = std_problem.solve()
 
 # Construct database from previous simulation (using ddfunction just to ease the task)
 Sh = dd.DDSpace(V, nmandel, 'DG') 
 
-eps_all = dd.DDFunction(Sh.space, Sh.dxm, name = "strain_db")
+eps_all = dd.DDFunction(Sh, Sh.dxm, name = "strain_db")
 eps_all.update(epsilon(std_uh))
 # print(eps_all.x.array.reshape((-1,nmandel)))
-sig_all = dd.DDFunction(Sh.space, Sh.dxm, name = "stress_db")
+sig_all = dd.DDFunction(Sh, Sh.dxm, name = "stress_db")
 sig_all.update(sigma_hooke(epsilon(std_uh)))
 # print(sig_all.x.array.reshape((-1,nmandel)))
 
 DB_ref = np.concatenate((eps_all.x.array.reshape((-1,nmandel)),sig_all.x.array.reshape((-1,nmandel))),axis=1)
 np.savetxt('database.txt', DB_ref, header = "1.0\n {0} 2 {1} {1}".format(DB_ref.shape[0],nmandel), comments = '')
 
-print("std-fem u norm:", fem.petsc.assemble.assemble_scalar(fem.form(ufl.inner(std_uh, std_uh)*ufl.dx)))
+print("std-fem u norm:", fem.assemble_scalar(fem.form(ufl.inner(std_uh, std_uh)*ufl.dx)))
 

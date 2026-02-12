@@ -1,4 +1,9 @@
 # WARNING : IN THE CURRENT STATE, THE LIBRARY IS BEING LARGELY MODIFIED. IT'S POSSIBLE SOME OF THE INSTRUCTIONS ARE DEPRECATED.
+
+# dependencies:
+scipy
+scikit-learn
+
 # DDFenics (X)
 A (model-free) Data-driven implementation based on fenics (https://github.com/felipefr/ddfenics).
 This version is compatible with Fenicsx 0.10 (still in a transition mode).
@@ -88,3 +93,7 @@ Stresses and strains are instances of DDFunction(Sh0).
 ## Citing
 Please cite this repository if this library has been useful for you.
 [![DOI](https://zenodo.org/badge/545056382.svg)](https://zenodo.org/badge/latestdoi/545056382)
+
+
+## Todo:
+DDProblemBase/bcsPF ?
