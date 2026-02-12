@@ -20,7 +20,7 @@ from .dd.ddspace import DDSpace
 from .dd.ddproblem_base import DDProblemBase
 # from .dd.ddproblem_generic import DDProblemGeneric as DDProblem
 from .dd.ddproblem_infinitesimalstrain import DDProblemInfinitesimalStrain
-from .dd.ddproblem_poisson import DDProblemPoisson # negative flux
+# from .dd.ddproblem_poisson import DDProblemPoisson # negative flux
 from .dd.ddsearch import DDSearch
 from .dd.ddstate import DDState
 from .dd.utils.estimation_metric import get_estimate_C_method, check_positiveness

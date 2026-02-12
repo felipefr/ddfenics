@@ -220,3 +220,21 @@ np.savetxt("reference_phase_space.txt", data)
 
 np.savetxt("reference_disp.txt", uh.x.array.reshape((-1,2)))
 
+
+# Read checkpoint ?
+# with XDMF 
+out_file = "./vtk/reference.xdmf"
+with io.XDMFFile(domain.comm, out_file, "w") as xdmf:
+    xdmf.write_mesh(domain)
+    xdmf.write_function(uh, t = 0.0)
+    for f in epsh + sigh:
+        xdmf.write_function(f, t = 0.0)
+        
+        
+with io.XDMFFile(domain.comm, out_file, "r") as xdmf:
+    mesh = xdmf.read_mesh()
+    V = fem.functionspace(mesh, ("CG", 1, (2,)))
+    u = fem.Function(V)
+    xdmf.read_function(u, name = "u")
+
+
