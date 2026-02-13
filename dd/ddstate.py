@@ -22,10 +22,11 @@ class DDState(object):
     def __init__(self, list_z):
         self.z = list_z
         self.n = len(self.z)
+        self.ngrad = self.z[0].function_space.value_shape[0]
 
     def as_vector(self):
         z = self.z
-        return ufl.as_vector([z[0][0], z[0][1], z[0][2], z[1][0], z[1][1], z[1][2] ])
+        return ufl.as_vector([z[0][i] for i in range(self.ngrad)] + [z[1][i] for i in range(self.ngrad)])
 
     def diff(self, z2):
         return [ self.z[i] - z2[i] for i in range(self.n) ] 

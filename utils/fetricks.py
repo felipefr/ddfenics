@@ -16,32 +16,92 @@ from mpi4py import MPI
 from dolfinx.fem.petsc import LinearProblem
 from dolfinx import fem, la 
 
-
-halfsqrt2 = 0.5*np.sqrt(2.)
-
+sqrt2 = np.sqrt(2.)
+halfsqrt2 = 0.5*sqrt2
 
 Id_mandel = ufl.as_vector([1.0, 1.0, 0.0])
 
+def tensor2mandel(X):
+    d = X.ufl_shape[0]
+    assert X.ufl_shape == (d, d)
+
+    if d == 2:
+        return ufl.as_vector([
+            X[0, 0],
+            X[1, 1],
+            halfsqrt2 * (X[0, 1] + X[1, 0])
+        ])
+
+    elif d == 3:
+        return ufl.as_vector([
+            X[0, 0],
+            X[1, 1],
+            X[2, 2],
+            halfsqrt2 * (X[1, 2] + X[2, 1]),
+            halfsqrt2 * (X[0, 2] + X[2, 0]),
+            halfsqrt2 * (X[0, 1] + X[1, 0]),
+        ])
+
+    else:
+        raise NotImplementedError("Mandel only defined for 2D or 3D")
+        
+        
+def mandel2tensor(X):
+    n = X.ufl_shape[0]
+
+    if n == 3:  # 2D
+        return ufl.as_tensor([
+            [X[0], sqrt2 * X[2]],
+            [sqrt2 * X[2], X[1]]
+        ])
+
+    elif n == 6:  # 3D
+        return ufl.as_tensor([
+            [X[0], sqrt2 * X[5], sqrt2 * X[4]],
+            [sqrt2 * X[5], X[1], sqrt2 * X[3]],
+            [sqrt2 * X[4], sqrt2 * X[3], X[2]]
+        ])
+
+    else:
+        raise NotImplementedError("Mandel only defined for 2D or 3D")
+
 def symgrad_mandel(v): # it was shown somehow to have better performance than doing it explicity
-    return ufl.as_vector([v[0].dx(0), v[1].dx(1), halfsqrt2*(v[0].dx(1) + v[1].dx(0))])
+    return tensor2mandel(ufl.grad(v))
+
+
+# def mandel2tensor(X):
+#     return ufl.as_tensor( [[X[0], halfsqrt2*X[5], halfsqrt2*X[4]],
+#                           [halfsqrt2*X[5], X[1], halfsqrt2*X[3]],
+#                           [halfsqrt2*X[4], halfsqrt2*X[3], X[2]]])
+
+# def tensor2mandel(X):
+#     return ufl.as_vector([X[0,0], X[1,1], X[2,2], 
+#                          halfsqrt2*(X[1,2] + X[2,1]), 
+#                          halfsqrt2*(X[0,2] + X[2,0]),
+#                          halfsqrt2*(X[0,1] + X[1,0])])
+
+# def tensor2mandel(X):
+#     return ufl.as_vector([X[0,0], X[1,1], halfsqrt2*(X[0,1] + X[1,0])])
+
+# def mandel2tensor(X):
+#     return ufl.as_tensor([[X[0], halfsqrt2*X[2]],
+#                         [halfsqrt2*X[2], X[1]]])
+
+
+
 
 def tr_mandel(X):
     return X[0] + X[1]
 
-def tensor2mandel(X):
-    return ufl.as_vector([X[0,0], X[1,1], halfsqrt2*(X[0,1] + X[1,0])])
 
-def mandel2tensor_np(X):
-    return np.array([[X[0], halfsqrt2*X[2]],
-                     [halfsqrt2*X[2], X[1]]])
+# def mandel2tensor_np(X):
+#     return np.array([[X[0], halfsqrt2*X[2]],
+#                      [halfsqrt2*X[2], X[1]]])
 
-def tensor2mandel_np(X):
-    return np.array([X[0,0], X[1,1], halfsqrt2*(X[0,1] + X[1,0])])
+# def tensor2mandel_np(X):
+#     return np.array([X[0,0], X[1,1], halfsqrt2*(X[0,1] + X[1,0])])
 
 
-def mandel2tensor(X):
-    return ufl.as_tensor([[X[0], halfsqrt2*X[2]],
-                        [halfsqrt2*X[2], X[1]]])
 
 
 def L2norm_given_form(form, comm):
@@ -142,3 +202,50 @@ class BlockSolver:
            s.solver.solve(s.b, s.sol.x.petsc_vec)
            s.sol.x.scatter_forward()
 
+
+
+
+# MANDEL = {
+#     2: {
+#         "order": [(0,0), (1,1), (0,1)],
+#         "to_vec": [0.5, 0.5, halfsqrt2], # 0.5 *( X[i,i] + X[i,i])
+#         "to_ten": [1.0, 1.0, sqrt2],
+#     },
+#     3: {
+#         "order": [(0,0), (1,1), (2,2),
+#                   (1,2), (0,2), (0,1)],
+#         "to_vec": [0.5, 0.5, 0.5, # 0.5 *( X[i,i] + X[i,i])
+#                    halfsqrt2, halfsqrt2, halfsqrt2],
+#         "to_ten": [1.0, 1.0, 1.0,
+#                    sqrt2, sqrt2, sqrt2],
+#     }
+# }
+
+# def tensor2mandel(X):
+#     d = X.ufl_shape[0]
+#     data = MANDEL[d]
+
+#     order = data["order"]
+#     factors = data["to_vec"]
+
+#     return ufl.as_vector([
+#         factors[k] * (X[i,j] + X[j,i])
+#         for k, (i,j) in enumerate(order)
+#     ])
+
+
+# def mandel2tensor(x):
+#     n = x.ufl_shape[0]
+#     d = 2 if n == 3 else 3
+#     data = MANDEL[d]
+
+#     order = data["order"]
+#     factors = data["to_ten"]
+
+#     T = [[0]*d for _ in range(d)]
+
+#     for k, (i,j) in enumerate(order):
+#         T[i][j] = factors[k] * x[k]
+#         T[j][i] = factors[k] * x[k]
+
+#     return ufl.as_tensor(T)

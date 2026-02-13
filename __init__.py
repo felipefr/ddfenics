@@ -45,3 +45,27 @@ from .dd.utils.estimation_metric import get_estimate_C_method, check_positivenes
 
 # from .ddd.generalized_metric import *
 
+
+from .utils.postprocessing_multiscale import (callback_get_errors,
+                                              callback_get_DBsize,
+                                              callback_get_time_elapsed,
+                                              db_mech_scatter_plot,
+                                              get_errors_DD 
+                                              # get_sol_ref, 
+                                              # get_sol_ref_with_mesh, 
+                                              # get_state_database_from_xdmf,
+                                              # export_database_from_simul,                                              
+                                              # convergence_plot,
+                                              # callback_generate_vtk,
+                                              # callback_evolution_state,
+                                              # callback_evolution_db,
+                                              # callback_get_update_counter_field,
+                                              # write_vtk_from_array
+                                              )
+                                             
+
+
+# from .utils.postprocessing import (generate_vtk_db_mech, 
+#                                    db_mech_scatter_plot,
+#                                    comparison_with_reference_sol)
+    
