@@ -24,12 +24,12 @@ class DDSpace:
     def __init__(self, Uh, dim, representation = 'Quadrature', degree_quad = None): # degree_quad seems a keyword
 
         self.representation = representation
-        self.degree_quad = degree_quad if degree_quad else Uh.ufl_element().degree
+        self.degree_quad = degree_quad if (degree_quad is not None) else (Uh.ufl_element().degree - 1)
         self.mesh = Uh.mesh
         self.basix_cell = self.mesh.basix_cell()
     
         if(representation == 'DG'):
-            self.dxm = ufl.Measure('dx', self.mesh)
+            self.dxm = ufl.Measure("dx", domain=self.mesh, metadata={"quadrature_degree": self.degree_quad, "quadrature_scheme": "default"})
             self.W0e = basix.ufl.element("DG", self.basix_cell, degree= self.degree_quad)
             self.We = basix.ufl.element("DG", self.basix_cell, degree= self.degree_quad, shape = (dim,))
             self.space = fem.functionspace(self.mesh, self.We)       
