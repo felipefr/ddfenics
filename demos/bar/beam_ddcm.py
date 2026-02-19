@@ -26,7 +26,7 @@ H = 0.5
 Nx = 50
 Ny =  5
 nmandel = 3
-traction = np.array([0.1e-3,-1.0e-3]
+traction = np.array([0.1e-3,-1.0e-3])
 tol_ddcm = 1e-9
 database_file = 'database.txt'
 

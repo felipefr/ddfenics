@@ -87,8 +87,8 @@ class DDMetric:
         if(type(self.dx) == type(None) ):
             self.dx = ufl.Measure('dx', self.mesh)
         
-        self.form_inner_prod = lambda dz: ufl.assemble(ufl.inner(ufl.dot(self.CC_fe, dz), dz)*self.dx)
-        self.form_energy = lambda dz: ufl.assemble(2.0*ufl.inner(dz[0], dz[1])*self.dx)
+        self.form_inner_prod = lambda dz: fem.form(ufl.inner(ufl.dot(self.CC_fe, dz), dz)*self.dx)
+        self.form_energy = lambda dz: fem.form(ufl.inner(dz[0], dz[1])*self.dx) # removing constant 2*
         
         self.C_fe = fem.Constant(self.mesh, self.CC[:n,:n].astype(PETSc.ScalarType))
         self.Cinv_fe = fem.Constant(self.mesh, self.CC[n:2*n, n:2*n].astype(PETSc.ScalarType))
@@ -130,7 +130,6 @@ class DDMetric:
         form = (ufl.inner(C_fe*deps, deps)*self.dx + 
                 ufl.inner(Cinv_fe*dsig, dsig)*self.dx)
         
-        form = fem.form(form)
         return form      
         
     def norm_fenics(self, z): # receives a list of DDFunction
@@ -143,7 +142,7 @@ class DDMetric:
     #     return np.sqrt(np.abs(self.form_energy(z_mech.diff(z_db))))  
 
     def norm_energy_fenics(self, z):
-        return L2norm_given_form(fem.form(self.form_energy(z)), self.comm)  
+        return L2norm_given_form(self.form_energy(z), self.comm)  
     
     # def norm_energy_fenics(self, z):
     #     return np.sqrt(np.abs(self.form_energy(z)))  

@@ -16,40 +16,16 @@ from .dd.ddsolver import DDSolver
 
 from .dd.ddfunction import DDFunction
 from .dd.ddspace import DDSpace
-# from .dd.ddbilinear import DDBilinear
 from .dd.ddproblem_base import DDProblemBase
-# from .dd.ddproblem_generic import DDProblemGeneric as DDProblem
 from .dd.ddproblem_infinitesimalstrain import DDProblemInfinitesimalStrain
-# from .dd.ddproblem_poisson import DDProblemPoisson # negative flux
 from .dd.ddsearch import DDSearch
 from .dd.ddstate import DDState
+from .dd.ddsearch_nnls import DDSearchNNLS
 from .dd.utils.estimation_metric import get_estimate_C_method, check_positiveness
-
-# # research-oriented development
-# from .ddd.ddproblem_finitestrain import DDProblemFiniteStrain
-# from .ddd.ddmaterial_rve import DDMaterial_RVE
-# from .ddd.ddmaterial_active import DDMaterialActive
-# from .ddd.ddsolver_nested import DDSolverNested
-# from .ddd.dd_al_update import *
-# # from .ddd.ddproblem_infinitesimalstrain_omega import DDProblemInfinitesimalStrainOmega
-# # from .ddd.ddsolver_dropout import DDSolverDropout
-# # from .ddd.ddsearch_isotropy import DDSearchIsotropy
-# from .ddd.ddsearch_nnls import DDSearchNNLS
-# from .ddd.ddproblem_poisson_Hdiv import DDProblemPoissonHdiv
-# from .ddd.ddproblem_poisson_H1 import DDProblemPoissonH1
-# from .ddd.ddproblem_poisson_Hdiv_negflux import DDProblemPoissonHdivNegFlux
-
-
-# from .utils.postprocessing import (db_mech_scatter_plot,
-#                                    comparison_with_reference_sol)
-
-# from .ddd.generalized_metric import *
-
 
 from .utils.postprocessing_multiscale import (callback_get_errors,
                                               callback_get_DBsize,
                                               callback_get_time_elapsed,
-                                              db_mech_scatter_plot,
                                               get_errors_DD 
                                               # get_sol_ref, 
                                               # get_sol_ref_with_mesh, 
@@ -65,7 +41,7 @@ from .utils.postprocessing_multiscale import (callback_get_errors,
                                              
 
 
-# from .utils.postprocessing import (generate_vtk_db_mech, 
-#                                    db_mech_scatter_plot,
-#                                    comparison_with_reference_sol)
+from .utils.postprocessing import (db_mech_scatter_plot,
+                                   export_xdmf_db_mech)
+#                                 comparison_with_reference_sol)
     

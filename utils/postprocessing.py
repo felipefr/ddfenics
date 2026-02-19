@@ -1,21 +1,19 @@
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# """
-# Created on Fri Jul 22 12:35:49 2022
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jul 22 12:35:49 2022
 
-# @author: felipefr
-# """
+@author: felipefr
+"""
 
 
-# import sys, os
-# import dolfin as df 
-# import matplotlib.pyplot as plt
-# import numpy as np
-# import fetricks.fenics.postprocessing.wrapper_io as iofe
-# from fetricks.fenics.la.wrapper_solvers import local_project_given_sol
+import sys, os
+import matplotlib.pyplot as plt
+import numpy as np
 
-# from ddfenics.dd.ddfunction import DDFunction
-# from ddfenics.dd.ddspace import DDSpace
+from dolfinx import fem
+import ddfenicsx as dd
+import fetricksx as ft
 
 # def comparison_with_reference_sol(sol, sol_ref = None, output_sol_ref = None, labels = ["uh", "eps_mech", "sig_mech"], Vref = None, dxm = None): # Comparison
 #     Uh = sol['u'].function_space()    
@@ -53,174 +51,140 @@
 
 #     return errors
 
-# def generate_vtk_db_mech(sol, ShDD, output_vtk, output_sol = None, labels = ["uh", "eps", "sig"]):
-#     sol["u"].rename('uh', '')
-#     sol["state_mech"][1].rename(labels[2] + '_mech', '')
-#     sol["state_db"][1].rename(labels[2] + '_db', '')
-#     sol["state_mech"][0].rename(labels[1] + '_mech', '')
-#     sol["state_db"][0].rename(labels[2] + '_db', '')
+def export_xdmf_db_mech(sol, ShDD, output_file, labels = ["uh", "eps", "sig"]):
     
-#     uh = sol["u"]
-#     state_mech = sol["state_mech"]
-#     state_db = sol["state_db"]
+    from ddfenicsx.utils.fetricks import interpolate_quadrature
     
-#     Sh0 = state_mech[0].function_space()
-#     mesh = uh.function_space().mesh()
+    msh = sol["u"].function_space.mesh 
     
-#     Sh0_DG = df.VectorFunctionSpace(mesh, 'DG', degree = 0 , dim = Sh0.num_sub_spaces()) # for stress    
+    sol["u"].name = labels[0]
+    sol["state_mech"][1].name = labels[2] + '_mech'
+    sol["state_db"][1].name = labels[2] + '_db'
+    sol["state_mech"][0].name = labels[1] + '_mech'
+    sol["state_db"][0].name = labels[2] + '_db'
     
+    uh = sol["u"]
+    state_mech = sol["state_mech"]
+    state_db = sol["state_db"]
     
-#     dxm = ShDD.dxm
+    Sh0_DG = fem.functionspace(msh, ('DG', 0, (6,)))    
+
+    sm = fem.Function(Sh0_DG, name = labels[2] + "_mech")
+    sdb = fem.Function(Sh0_DG, name = labels[2] + "_db")
+    em = fem.Function(Sh0_DG, name = labels[1] + "_mech")
+    edb = fem.Function(Sh0_DG, name = labels[1] + "_db")
+   
+    interpolate_quadrature(state_mech[1], sm)
+    interpolate_quadrature(state_mech[0], em)
+    interpolate_quadrature(state_db[1], sdb)
+    interpolate_quadrature(state_db[0], edb)
     
-#     sm = local_project_given_sol(state_mech[1], Sh0_DG, dxm = dxm)
-#     sdb = local_project_given_sol(state_db[1], Sh0_DG, dxm = dxm)
-#     em = local_project_given_sol(state_mech[0], Sh0_DG, dxm = dxm)
-#     edb = local_project_given_sol(state_db[0], Sh0_DG, dxm = dxm)
+    with ft.XDMFWriter(msh , output_file) as xdmf:
+        xdmf.write_mesh()
+        xdmf.register_field(uh, export_dim = 3)
+        xdmf.register_field(sm)
+        xdmf.register_field(sdb)
+        xdmf.register_field(em)
+        xdmf.register_field(edb)
+        xdmf.write_fields(0)    
     
-#     sm.rename(labels[2] + '_mech', '')
-#     sdb.rename(labels[2] + '_db', '')
-    
-#     em.rename(labels[1] + '_mech', '')
-#     edb.rename(labels[1] + '_db', '')
-    
-#     fields = {'vertex': [uh], 'cell_vector': [sm, sdb, em, edb] }
-#     fields_sol = {'vertex': [uh], 'cell': [sm, sdb, em, edb] }
-#     iofe.exportXDMF_gen(output_vtk  , fields)
-#     if(type(output_sol) is not type(None)):
-#         iofe.exportXDMF_checkpoint_gen(output_sol  , fields_sol)
 
     
-# def db_mech_scatter_plot(sol, DB, namefig, fig_num = 1, title = ''):
     
-#     from fetricks.plotting import misc
+def db_mech_scatter_plot(sol, DB, namefig, fig_num = 1, title = '', op =1):
+    
+    # from ddfenicsx.utils.fetricksx import load_latex_options
+    # load_latex_options()
+    
+    state_mech = sol["state_mech"]
+    state_db = sol["state_db"]
+    
+    fig = plt.figure(fig_num, (8,3))
+    # plt.suptitle(title)
+    plt.suptitle("_")
+    
+    
+    if(op == 1): # classical plot strain - stress 
+        ax1 = fig.add_subplot(1,2,1)
+        
+        ax1.set_xlabel('$\\varepsilon_{11}+\\varepsilon_{22}$')
+        ax1.set_ylabel('$\sigma_{11}+\sigma_{22}$')
+        ax1.scatter(DB[:, 0, 0] + DB[:, 0, 1], DB[:, 1, 0] + DB[:, 1, 1], c='gray', label = 'DB')
+        ax1.scatter(state_db[0].data()[:,0]+state_db[0].data()[:,1],state_db[1].data()[:,0]+state_db[1].data()[:,1], c='blue', label = 'D')
+        ax1.scatter(state_mech[0].data()[:,0]+state_mech[0].data()[:,1],state_mech[1].data()[:,0]+state_mech[1].data()[:,1], marker = 'x', c='black' , label = 'E')
+        ax1.legend(loc = 'best')
+        ax1.grid()
+    
+        ax2 = fig.add_subplot(1,2,2)
+        
+        ax2.set_xlabel('$\\varepsilon_{12}$')
+        ax2.set_ylabel('$\sigma_{12}$')
+        ax2.scatter(DB[:, 0, 2], DB[:, 1, 2], c='gray', label = 'DB')
+        ax2.scatter(state_db[0].data()[:,2], state_db[1].data()[:,2], c='blue', label = 'D')
+        ax2.scatter(state_mech[0].data()[:,2], state_mech[1].data()[:,2], marker = 'x', c='black', label = 'E')
+        ax2.legend(loc = 'best')
+        ax2.grid()
 
-#     misc.load_latex_options()
+    if(op == 2): # plot strain only 
     
-#     state_mech = sol["state_mech"]
-#     state_db = sol["state_db"]
-    
-#     fig = plt.figure(fig_num, (6,4))
-#     plt.suptitle(title)
-    
-#     # fig,(ax1,ax2) = plt.subplots(1,2)
-#     ax1 = fig.add_subplot(1,2,1)
-    
-#     ax1.set_xlabel('$\\varepsilon_{11}+\\varepsilon_{22}$')
-#     ax1.set_ylabel('$\sigma_{11}+\sigma_{22}$')
-#     ax1.scatter(DB[:, 0, 0] + DB[:, 0, 1], DB[:, 1, 0] + DB[:, 1, 1], c='gray', label = 'DB')
-#     ax1.scatter(state_db[0].data()[:,0]+state_db[0].data()[:,1],state_db[1].data()[:,0]+state_db[1].data()[:,1], c='blue', label = 'D')
-#     ax1.scatter(state_mech[0].data()[:,0]+state_mech[0].data()[:,1],state_mech[1].data()[:,0]+state_mech[1].data()[:,1], marker = 'x', c='black' , label = 'E')
-#     ax1.legend(loc = 'best')
-#     ax1.grid()
-
-#     ax2 = fig.add_subplot(1,2,2)
-    
-#     ax2.set_xlabel('$\\varepsilon_{12}$')
-#     ax2.set_ylabel('$\sigma_{12}$')
-#     ax2.scatter(DB[:, 0, 2], DB[:, 1, 2], c='gray', label = 'DB')
-#     ax2.scatter(state_db[0].data()[:,2], state_db[1].data()[:,2], c='blue', label = 'D')
-#     ax2.scatter(state_mech[0].data()[:,2], state_mech[1].data()[:,2], marker = 'x', c='black', label = 'E')
-#     ax2.legend(loc = 'best')
-#     ax2.grid()
-
-#     plt.tight_layout()
-#     plt.savefig(namefig)
-    
-# def db_mech_scatter_plot(sol, DB, namefig, fig_num = 1, title = '', op =1):
-    
-#     from fetricks.plotting import misc
-
-#     misc.load_latex_options()
-    
-#     state_mech = sol["state_mech"]
-#     state_db = sol["state_db"]
-    
-#     fig = plt.figure(fig_num, (8,3))
-#     # plt.suptitle(title)
-#     plt.suptitle("_")
-    
-    
-#     if(op == 1): # classical plot strain - stress 
-#         ax1 = fig.add_subplot(1,2,1)
+        hfm = np.sqrt(2.)**-1
         
-#         ax1.set_xlabel('$\\varepsilon_{11}+\\varepsilon_{22}$')
-#         ax1.set_ylabel('$\sigma_{11}+\sigma_{22}$')
-#         ax1.scatter(DB[:, 0, 0] + DB[:, 0, 1], DB[:, 1, 0] + DB[:, 1, 1], c='gray', label = 'DB')
-#         ax1.scatter(state_db[0].data()[:,0]+state_db[0].data()[:,1],state_db[1].data()[:,0]+state_db[1].data()[:,1], c='blue', label = 'D')
-#         ax1.scatter(state_mech[0].data()[:,0]+state_mech[0].data()[:,1],state_mech[1].data()[:,0]+state_mech[1].data()[:,1], marker = 'x', c='black' , label = 'E')
-#         ax1.legend(loc = 'best')
-#         ax1.grid()
+        ax1 = fig.add_subplot(1,3,1)
+        
+        ax1.set_xlabel('$\\varepsilon_{11}$')
+        ax1.set_ylabel('$\\varepsilon_{22}$')
+        ax1.scatter(DB[:, 0, 0], DB[:, 0, 1], c='gray', 
+                    s = 5, marker = '.', label = '$D_L$')
+        ax1.scatter(state_db[0].data()[:,0], state_db[0].data()[:,1], 
+                    marker = '.', s=6, c='blue', label = '$\mathcal{Z}_D$')
+        # ax1.legend(loc = 'best')
+        ax1.grid()
+        
+        handles, labels = ax1.get_legend_handles_labels()
+        fig.legend(handles, labels, loc='upper center', ncols = 2)
     
-#         ax2 = fig.add_subplot(1,2,2)
+        ax2 = fig.add_subplot(1,3,2)
         
-#         ax2.set_xlabel('$\\varepsilon_{12}$')
-#         ax2.set_ylabel('$\sigma_{12}$')
-#         ax2.scatter(DB[:, 0, 2], DB[:, 1, 2], c='gray', label = 'DB')
-#         ax2.scatter(state_db[0].data()[:,2], state_db[1].data()[:,2], c='blue', label = 'D')
-#         ax2.scatter(state_mech[0].data()[:,2], state_mech[1].data()[:,2], marker = 'x', c='black', label = 'E')
-#         ax2.legend(loc = 'best')
-#         ax2.grid()
-
-#     if(op == 2): # plot strain only 
-    
-#         hfm = np.sqrt(2.)**-1
-        
-#         ax1 = fig.add_subplot(1,3,1)
-        
-#         ax1.set_xlabel('$\\varepsilon_{11}$')
-#         ax1.set_ylabel('$\\varepsilon_{22}$')
-#         ax1.scatter(DB[:, 0, 0], DB[:, 0, 1], c='gray', 
-#                     s = 5, marker = '.', label = '$D_L$')
-#         ax1.scatter(state_db[0].data()[:,0], state_db[0].data()[:,1], 
-#                     marker = '.', s=6, c='blue', label = '$\mathcal{Z}_D$')
-#         # ax1.legend(loc = 'best')
-#         ax1.grid()
-        
-#         handles, labels = ax1.get_legend_handles_labels()
-#         fig.legend(handles, labels, loc='upper center', ncols = 2)
-    
-#         ax2 = fig.add_subplot(1,3,2)
-        
-#         ax2.set_xlabel('$\\varepsilon_{11}$')
-#         ax2.set_ylabel('$\\varepsilon_{12}$')
-#         ax2.scatter(DB[:, 0, 0], hfm*DB[:, 0, 2], c='gray', 
-#                     s = 5, marker = '.', label = '$D_L$')
-#         ax2.scatter(state_db[0].data()[:,0], hfm*state_db[0].data()[:,2], 
-#                     marker = '.', s =6, c='blue', label = '$\mathcal{Z}_D$')
-#         # ax2.legend(loc = 'best')
-#         ax2.grid()
+        ax2.set_xlabel('$\\varepsilon_{11}$')
+        ax2.set_ylabel('$\\varepsilon_{12}$')
+        ax2.scatter(DB[:, 0, 0], hfm*DB[:, 0, 2], c='gray', 
+                    s = 5, marker = '.', label = '$D_L$')
+        ax2.scatter(state_db[0].data()[:,0], hfm*state_db[0].data()[:,2], 
+                    marker = '.', s =6, c='blue', label = '$\mathcal{Z}_D$')
+        # ax2.legend(loc = 'best')
+        ax2.grid()
         
         
-#         ax3 = fig.add_subplot(1,3,3)
+        ax3 = fig.add_subplot(1,3,3)
         
-#         ax3.set_xlabel('$\\varepsilon_{22}$')
-#         ax3.set_ylabel('$\\varepsilon_{12}$')
-#         ax3.scatter(DB[:, 0, 1], hfm*DB[:, 0, 2], c='gray', 
-#                     s = 5, marker = '.', label = '$D_L$')
-#         ax3.scatter(state_db[0].data()[:,1], hfm*state_db[0].data()[:,2], 
-#                     marker = '.', s = 6, c='blue', label = '$\mathcal{Z}_D$')
-#         # ax3.legend(loc = 'best')
-#         ax3.grid()
+        ax3.set_xlabel('$\\varepsilon_{22}$')
+        ax3.set_ylabel('$\\varepsilon_{12}$')
+        ax3.scatter(DB[:, 0, 1], hfm*DB[:, 0, 2], c='gray', 
+                    s = 5, marker = '.', label = '$D_L$')
+        ax3.scatter(state_db[0].data()[:,1], hfm*state_db[0].data()[:,2], 
+                    marker = '.', s = 6, c='blue', label = '$\mathcal{Z}_D$')
+        # ax3.legend(loc = 'best')
+        ax3.grid()
         
-#     plt.tight_layout()
-#     plt.savefig(namefig, dpi=300)
+    plt.tight_layout()
+    plt.savefig(namefig, dpi=300)
     
 
-# def convergence_plot(hist, namefig, threshold = None, fig_num = 1):
+def convergence_plot(hist, namefig, threshold = None, fig_num = 1):
     
-#     fig = plt.figure(fig_num)
-#     plt.plot(hist['relative_energy'], 'o-', label = "relative_energy")
+    fig = plt.figure(fig_num)
+    plt.plot(hist['relative_energy'], 'o-', label = "relative_energy")
 
-#     # plt.plot(hist['classical_relative_energy'], 'o-' , label = "classical_relative_energy")
+    # plt.plot(hist['classical_relative_energy'], 'o-' , label = "classical_relative_energy")
     
-#     if(threshold is not None): 
-#          plt.plot([0,len(hist['relative_energy'])],[threshold,threshold])
+    if(threshold is not None): 
+         plt.plot([0,len(hist['relative_energy'])],[threshold,threshold])
     
-#     plt.yscale('log')
-#     plt.xlabel('iterations')
-#     plt.ylabel('distance')
-#     plt.legend(loc = 'best')
-#     plt.grid()
+    plt.yscale('log')
+    plt.xlabel('iterations')
+    plt.ylabel('distance')
+    plt.legend(loc = 'best')
+    plt.grid()
     
-#     plt.savefig(namefig)
+    plt.savefig(namefig)
         

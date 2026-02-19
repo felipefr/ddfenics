@@ -9,6 +9,8 @@ This is a condensed version of fetricks (https://github.com/felipefr/fetricks)
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
+
 import ufl
 from dolfinx import fem
 from petsc4py import PETSc
@@ -105,7 +107,7 @@ def tr_mandel(X):
 
 
 def L2norm_given_form(form, comm):
-    val = fem.assemble_scalar(form)
+    val = fem.assemble_scalar(fem.form(form))
     return np.sqrt(comm.allreduce(val, op=MPI.SUM))
 
 
@@ -249,3 +251,11 @@ class BlockSolver:
 #         T[j][i] = factors[k] * x[k]
 
 #     return ufl.as_tensor(T)
+
+
+def load_latex_options():
+    plt.rc("text", usetex = True)
+    plt.rc("font", family = 'serif')
+    plt.rc("font", size = 12)
+    # plt.rc('text.latex', preamble=r'\usepackage{amsmath,amsfonts}')
+    # plt.rcParams["mathtext.fontset"] = "cm"
