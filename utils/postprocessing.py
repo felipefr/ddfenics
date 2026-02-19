@@ -56,6 +56,8 @@ def export_xdmf_db_mech(sol, ShDD, output_file, labels = ["uh", "eps", "sig"]):
     from ddfenicsx.utils.fetricks import interpolate_quadrature
     
     msh = sol["u"].function_space.mesh 
+    Sh0_DG = fem.functionspace(msh, ('DG', 0, (6,)))  
+    V_out = fem.functionspace(msh, ('Lagrange', 1, (3,))) # just for visualisation
     
     sol["u"].name = labels[0]
     sol["state_mech"][1].name = labels[2] + '_mech'
@@ -63,11 +65,10 @@ def export_xdmf_db_mech(sol, ShDD, output_file, labels = ["uh", "eps", "sig"]):
     sol["state_mech"][0].name = labels[1] + '_mech'
     sol["state_db"][0].name = labels[2] + '_db'
     
-    uh = sol["u"]
+    uh = fem.Function(V_out, name = labels[0])
+    uh.interpolate(sol["u"])
     state_mech = sol["state_mech"]
     state_db = sol["state_db"]
-    
-    Sh0_DG = fem.functionspace(msh, ('DG', 0, (6,)))    
 
     sm = fem.Function(Sh0_DG, name = labels[2] + "_mech")
     sdb = fem.Function(Sh0_DG, name = labels[2] + "_db")

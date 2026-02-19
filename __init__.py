@@ -13,6 +13,7 @@ Created on Fri Feb  6 11:41:16 2026
 from .dd.ddmaterial import DDMaterial
 from .dd.ddmetric import DDMetric
 from .dd.ddsolver import DDSolver
+from .dd.ddsolver_nested import DDSolverNested
 
 from .dd.ddfunction import DDFunction
 from .dd.ddspace import DDSpace

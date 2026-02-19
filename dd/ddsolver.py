@@ -30,7 +30,6 @@ class DDSolver:
         self.DB = self.ddmat.DB.view()
         self.metric = self.problem.metric    
         self.dx = self.problem.dx
-        self.sol = self.problem.get_sol()
 
         # error metrics        
         self.hist = {'distance' : [], 'relative_distance': [], 'relative_energy': [], 'sizeDB': []}
@@ -80,7 +79,6 @@ class DDSolver:
         end = timer()
         return end - start
 
-
     def distance_db_mech(self):
         return self.metric.dist_fenics(self.problem.z_mech, self.problem.z_db)
 
@@ -96,10 +94,7 @@ class DDSolver:
     def append_hist(self, m, m_ref, m0 = 0.0):
         for key in self.hist.keys():
             self.hist[key].append(self.calls_hist[key](m, m_ref, m0))
-
-    def get_sol(self):
-        return self.sol
     
     def get_state_mech_data(self):
         return np.concatenate(tuple([z_i.x.array[:].reshape((-1, self.problem.strain_dim)) 
-                                     for z_i in self.sol["state_mech"]]) , axis = 1)
+                                     for z_i in self.problem.z_mech]), axis = 1)
