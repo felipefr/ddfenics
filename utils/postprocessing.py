@@ -10,6 +10,7 @@ Created on Fri Jul 22 12:35:49 2022
 import sys, os
 import matplotlib.pyplot as plt
 import numpy as np
+from timeit import default_timer as timer
 
 from dolfinx import fem
 import ddfenicsx as dd
@@ -50,6 +51,34 @@ import fetricksx as ft
 #     print("{:e}, {:e}, {:e}, {:e}, {:e}".format(errors['u'], errors['sig_db'], errors['eps_db'], errors['sig_mech'], errors['eps_mech'] ) )
 
 #     return errors
+
+def callback_get_time_elapsed(k, solver, list_time, start_time = 0.0):
+    list_time.append(timer() - start_time)
+
+def get_errors_DD(sol, sol_ref, norm):
+    gdim = sol_ref['u'].function_space.mesh.geometry.dim
+    norm_max = lambda X: np.max(np.linalg.norm(X, axis = 1))
+    dist_rel = lambda x, x0, norm : norm(x - x0)/norm(x0)
+    
+    errors = {}
+    errors['e_u_L2'] = dist_rel(sol['u'], sol_ref['u'], norm)
+    errors['e_eps_L2'] = dist_rel(sol['state_mech'][0], sol_ref['state'][0], norm)
+    errors['e_sig_L2'] = dist_rel(sol['state_mech'][1], sol_ref['state'][1], norm)
+    errors['e_eps_dd_L2'] = dist_rel(sol['state_db'][0], sol['state_mech'][0], norm)
+    errors['e_sig_dd_L2'] = dist_rel(sol['state_db'][1], sol['state_mech'][1], norm)
+
+    errors['e_u_max'] = dist_rel(sol['u'].x.array.reshape((-1,gdim)), 
+                       sol_ref['u'].x.array.reshape((-1,gdim)), norm_max)
+    errors['e_eps_max'] = dist_rel(sol['state_mech'][0].data(), sol_ref['state'][0].data(), norm_max)
+    errors['e_sig_max'] = dist_rel(sol['state_mech'][1].data(), sol_ref['state'][1].data(), norm_max)
+    errors['e_eps_dd_max'] = dist_rel(sol['state_db'][0].data(), sol['state_mech'][0].data(), norm_max)
+    errors['e_sig_dd_max'] = dist_rel(sol['state_db'][1].data(), sol['state_mech'][1].data(), norm_max)
+
+    return errors
+
+def callback_get_errors(k, solver, sol_ref, error_list, norm):
+    sol = solver.get_sol()
+    error_list.append(np.array(list(get_errors_DD(sol, sol_ref, norm).values())))
 
 def export_xdmf_db_mech(sol, ShDD, output_file, labels = ["uh", "eps", "sig"]):
     

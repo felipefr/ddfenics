@@ -24,25 +24,12 @@ from .dd.ddstate import DDState
 from .dd.ddsearch_nnls import DDSearchNNLS
 from .dd.utils.estimation_metric import get_estimate_C_method, check_positiveness
 
-from .utils.postprocessing_multiscale import (callback_get_errors,
-                                              callback_get_DBsize,
-                                              callback_get_time_elapsed,
-                                              get_errors_DD 
-                                              # get_sol_ref, 
-                                              # get_sol_ref_with_mesh, 
-                                              # get_state_database_from_xdmf,
-                                              # export_database_from_simul,                                              
-                                              # convergence_plot,
-                                              # callback_generate_vtk,
-                                              # callback_evolution_state,
-                                              # callback_evolution_db,
-                                              # callback_get_update_counter_field,
-                                              # write_vtk_from_array
-                                              )
-                                             
-
 
 from .utils.postprocessing import (db_mech_scatter_plot,
-                                   export_xdmf_db_mech)
+                                   export_xdmf_db_mech,
+                                   callback_get_time_elapsed,
+                                   callback_get_errors,
+                                   get_errors_DD 
+                                   )
 #                                 comparison_with_reference_sol)
     
