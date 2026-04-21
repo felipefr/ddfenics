@@ -10,6 +10,6 @@ from .ddproblem_infinitesimalstrain import DDProblemInfinitesimalStrain
 from .ddsearch import DDSearch
 from .ddstate import DDState
 from .ddsearch_nnls import DDSearchNNLS
-
+from .ddproblem_infinitesimalstrain_nitsche import DDProblemInfinitesimalStrainNitsche
 
 from . import non_intrusive_mode

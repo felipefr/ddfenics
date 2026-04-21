@@ -3,15 +3,23 @@
 """
 Created on Tue Apr 21 12:59:40 2026
 
-@author: frocha
+@author: ffiguere
+
+This file is part of ddfenics, a FEniCs-based (Model-Free) Data-driven 
+Computational Mechanics implementation.
+
+Copyright (c) 2022-2026, Felipe Rocha.
+See file LICENSE.txt for license information.
+Please report all bugs and problems to <felipe.figueredo-rocha@u-pec.fr>, or
+<f.rocha.felipe@gmail.com>
 """
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on Thu Apr 16 17:22:07 2026
-
-@author: frocha
+This demo compares the fenics-based and non-intrusive mode usages. 
+The problem solved is a 2d rectangular holed plate, clamped on the left and loaded on the right.
+The non-intrusive mode only uses fenicsx to generate FEM stiffness matrices, 
+load vector and discrete gradient operator. It could be replaced by any other user's solver. 
+Mesh reading and visualisation also uses fenicsx, but it can be easily replaced.
 """
 
 import pyvista as pv
@@ -24,7 +32,8 @@ from timeit import default_timer as timer
 import ddfenicsx as dd 
 ddni = dd.non_intrusive_mode
 
-from fenics_funcs import get_problem, get_nitsche_terms, get_KFmat, get_Bmat, pyvista_warp_plot
+from fenics_funcs import (read_mesh, get_problem, get_nitsche_terms, 
+                         get_KFmat, get_Bmat, pyvista_warp_plot)
 
 def noisy_dataset(DB, sig = 0.01, n_copies = 1):
     DB_list = []
@@ -46,15 +55,16 @@ RIGHT_FLAG = "RIGHT"
 # Material properties
 msh_file = "four_holes.msh"
 E, nu = 210, 0.3
-q_right = 1.0
+q_right = 0.1
 tol_ddcm = 1e-15
 Nitmax_ddcm = 100
 
 
 # Exact Solution 
-a , L, bcs, V = get_problem(msh_file, E, nu, q_right, LEFT_FLAG, RIGHT_FLAG)
+meshdata = read_mesh(msh_file)
+a , L, bcs, V = get_problem(meshdata, E, nu, q_right, LEFT_FLAG, RIGHT_FLAG)
 K, F = get_KFmat(a, L, bcs=[])
-Kbc, Fbc, _, _ = get_nitsche_terms(msh_file, E, nu, LEFT_FLAG)
+Kbc, Fbc, a_nitsche, L_nitsche = get_nitsche_terms(meshdata, E, nu, LEFT_FLAG)
 
 K += Kbc
 F += Fbc
@@ -62,7 +72,7 @@ F += Fbc
 uh_ex = sp.linalg.spsolve(K, F) 
 
 # DDCM operators
-B, WBT, W = get_Bmat(msh_file)
+B, WBT, W = get_Bmat(meshdata)
 
 # Creation Database
 mu = E / (2.0 * (1.0 + nu))
@@ -77,6 +87,8 @@ DB = noisy_dataset(DB, sig = 0.1, n_copies=3)
 # Non-intrusive : 
 np.random.seed(10)
 nmandel = int(0.5*(gdim+1)*gdim)
+
+start = timer()
 ddmat = ddni.DDMaterial(DB, sizes = [nmandel, nmandel], addzero = False, shuffle = -1)  # replaces sigma_law = lambda u : ...
 
 metric = ddni.DDMetric(C=Cmat, W = W)
@@ -87,36 +99,50 @@ search = ddni.DDSearch(metric, ddmat, algorithm = 'kd_tree', opInit = 'zero', se
 solver = ddni.DDSolver(problem, search)
 
 solver.solve(tol = tol_ddcm, maxit = Nitmax_ddcm)
+sol_u_ni = problem.get_sol()['u'].copy()
+end = timer()
 
-sol_u = problem.get_sol()['u'].copy()
-
-plt.plot(solver.hist['relative_distance'], '-o')
-plt.yscale('log')
-plt.grid()
+time_ni = end - start
+hist_ni = solver.hist['relative_distance'].copy()
+error_ni = np.linalg.norm(uh_ex - sol_u_ni)
 
 
-# Fenics-based Non-intrusive : 
+# Fenics-based : 
 np.random.seed(10)
+start = timer()
 ddmat = dd.DDMaterial(DB.reshape((-1,2,nmandel)), addzero = False, shuffle = -1)  # replaces sigma_law = lambda u : ...
 
 Sh = dd.DDSpace(V, nmandel)
 spaces = [V, Sh]
 metric = dd.DDMetric(Cmat, Sh)
-
-problem = dd.DDProblemInfinitesimalStrain(spaces, L, bcs, metric, is_accelerated = True)
+bcs_nitsche = [meshdata, (LEFT_FLAG, bcs[0].g.value)]
+problem = dd.DDProblemInfinitesimalStrainNitsche(spaces, L, bcs_nitsche, metric, is_accelerated = True)
 
 search = dd.DDSearch(metric, ddmat, algorithm = 'kd_tree', opInit = 'zero', seed = 8)
 solver = dd.DDSolver(problem, search)
 
 solver.solve(tol = tol_ddcm, maxit = Nitmax_ddcm)
-sol_u2 = problem.get_sol()['u'].x.array[:]
+sol_u_fenics = problem.get_sol()['u'].x.array[:]
+end = timer()
 
-plt.plot(solver.hist['relative_distance'], '-o')
+time_fenics = end - start
+hist_fenics = solver.hist['relative_distance'].copy()
+error_fenics = np.linalg.norm(uh_ex - sol_u_fenics)
+error_ni_fenics = np.linalg.norm(sol_u_ni - sol_u_fenics)
+
+
+print("error ddcm non-intrusive : ", error_ni)
+print("error ddcm fenics-based : ", error_fenics)
+print("error non-intrusive agaist fenics-based : ", error_ni_fenics)
+print("time ddcm non-intrusive : ", time_ni)
+print("time ddcm fenics-based : ", time_fenics)
+
+plt.title("relative incremental ddcm error")
+plt.plot(hist_ni, '-o', label = "non-intrusive")
+plt.plot(hist_fenics, '-o', label = "fenics-based")
+plt.legend()
 plt.yscale('log')
 plt.grid()
 
-print(np.linalg.norm(uh_ex - sol_u))
-print(np.linalg.norm(uh_ex - sol_u2))
-print(np.linalg.norm(sol_u - sol_u2))
 
-pyvista_warp_plot(sol_u, V)
+pyvista_warp_plot(sol_u_ni, V, scale_fac = 50.0)

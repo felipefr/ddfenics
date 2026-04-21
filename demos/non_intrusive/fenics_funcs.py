@@ -31,14 +31,25 @@ def petsc2scipy(A, shape = None):
     A_scipy = sp.csr_matrix((Av, Aj, Ai), shape = shape)
     return A_scipy
 
-def get_nitsche_terms(msh_file, E, nu, CLAMPED_FLAG, gdim = 2, porder = 1):
+
+
+def read_mesh(msh_file, gdim = 2):
+    # Usage of meshdata
+    #domain = meshdata.mesh
+    #cell_tags = meshdata.cell_tags
+    #facet_tags = meshdata.facet_tags
+    #physical = meshdata.physical_groups
+    
+    meshdata = io.gmsh.read_from_msh(msh_file, MPI.COMM_WORLD, gdim=gdim)
+    return meshdata
+
+def get_nitsche_terms(meshdata, E, nu, CLAMPED_FLAG, gdim = 2, porder = 1):
     gamma = 100
     uD = np.array([0.0,0.0])
     mu = E / (2.0 * (1.0 + nu))
     lmbda = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
     gamma = gamma*(lmbda + 2*mu)
     
-    meshdata = io.gmsh.read_from_msh(msh_file, MPI.COMM_WORLD, gdim=gdim)
     domain = meshdata.mesh
     cell_tags = meshdata.cell_tags
     facet_tags = meshdata.facet_tags
@@ -88,8 +99,7 @@ def get_nitsche_terms(msh_file, E, nu, CLAMPED_FLAG, gdim = 2, porder = 1):
 
 
 
-def get_problem(msh_file, E, nu, q_load, CLAMPED_FLAG, LOAD_FLAG, gdim = 2, porder = 1):
-    meshdata = io.gmsh.read_from_msh(msh_file, MPI.COMM_WORLD, gdim=gdim)
+def get_problem(meshdata, E, nu, q_load, CLAMPED_FLAG, LOAD_FLAG, gdim = 2, porder = 1):
     domain = meshdata.mesh
     cell_tags = meshdata.cell_tags
     facet_tags = meshdata.facet_tags
@@ -139,8 +149,7 @@ def get_problem(msh_file, E, nu, q_load, CLAMPED_FLAG, LOAD_FLAG, gdim = 2, pord
 
     return a, L, bcs, V
 
-def get_Bmat(msh_file, gdim = 2, porder = 1):
-    meshdata = io.gmsh.read_from_msh(msh_file, MPI.COMM_WORLD, gdim=gdim)
+def get_Bmat(meshdata, gdim = 2, porder = 1):
     domain = meshdata.mesh
     
     dx = ufl.Measure("dx", domain=domain)
@@ -190,7 +199,7 @@ def get_KFmat(a,L, bcs):
 
 
 
-def pyvista_warp_plot(sol_u, V, gdim = 2):
+def pyvista_warp_plot(sol_u, V, gdim = 2, scale_fac = 1.0):
     uh = fem.Function(V)
     uh.x.array[:] = sol_u
     
@@ -205,25 +214,26 @@ def pyvista_warp_plot(sol_u, V, gdim = 2):
     grid.point_data["|u|"] = u_mag    
     grid.point_data["Displacement"] = np.hstack((u_vec , np.zeros_like(u_vec[:,0]).reshape((-1,1))))
 
-    warped = grid.warp_by_vector("Displacement", factor=1.0)
+    warped = grid.warp_by_vector("Displacement", factor=scale_fac)
 
     plotter = pv.Plotter()
-    
-    plotter.add_mesh(
-        grid,
-        style="wireframe",
-        color="black",
-        line_width=2,
-        label="Undeformed"
-    )
-    
+
     plotter.add_mesh(
         warped,
         scalars="|u|",
         show_edges=True,
         cmap="viridis"
     )
+        
+    plotter.add_mesh(
+        grid,
+        style="wireframe",
+        color="gray",
+        line_width=0.2,
+        label="Undeformed"
+    )
     
+
     plotter.view_xy()
     plotter.enable_parallel_projection()
     plotter.show()

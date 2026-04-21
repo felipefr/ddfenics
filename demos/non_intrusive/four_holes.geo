@@ -1,6 +1,6 @@
 // This code was created by pygmsh v6.0.2.
-lc1 = 2.0;
-lc2 = 1.0;
+lc1 = 1.0;
+lc2 = 2.0;
 
 L = 100;
 H = 80;
