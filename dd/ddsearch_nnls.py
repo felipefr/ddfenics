@@ -14,11 +14,10 @@ Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
 
 """
 import numpy as np
-import ddfenicsx as dd
-import fetricksx as ft
 import scipy.optimize as opt
+from .ddsearch import DDSearch
     
-class DDSearchNNLS(dd.DDSearch):
+class DDSearchNNLS(DDSearch):
     def __init__(self, metric, ddmat, algorithm = 'ball_tree', norm ='euclidean', opInit = 'zero', seed = 0, 
                  L2reg = 0.0001, penfac = 10e4, kneigh = 5):
         self.L2reg = L2reg

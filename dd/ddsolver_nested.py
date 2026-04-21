@@ -6,9 +6,9 @@ Created on Mon Feb 20 15:34:56 2023
 @author: ffiguere
 """
 
-import ddfenicsx as dd
+from .ddsolver import DDSolver
 
-class DDSolverNested(dd.DDSolver):
+class DDSolverNested(DDSolver):
     
     def __init__(self, solver_inner, updater):
         

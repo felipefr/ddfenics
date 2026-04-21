@@ -21,8 +21,9 @@ import ufl
 from dolfinx import fem
 import ddfenicsx as dd
 from ddfenicsx.utils.fetricks import symgrad_mandel, BlockSolver
+from .ddproblem_base import DDProblemBase
 
-class DDProblemInfinitesimalStrain(dd.DDProblemBase):
+class DDProblemInfinitesimalStrain(DDProblemBase):
     def __init__(self, spaces, L, bcs, metric,  
                  form_compiler_parameters = {}, bcsPF = [], is_accelerated = True):
         
