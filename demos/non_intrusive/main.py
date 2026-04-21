@@ -42,11 +42,9 @@ BOTTOM_FLAG = "BOTTOM"
 TOP_FLAG = "TOP"
 LEFT_FLAG = "LEFT"
 RIGHT_FLAG = "RIGHT"
-CRACK_LEFT = "CRACK_LEFT"
-CRACK_RIGHT = "CRACK_RIGHT"
 
 # Material properties
-msh_file = "cracked_plate.msh"
+msh_file = "four_holes.msh"
 E, nu = 210, 0.3
 q_right = 1.0
 tol_ddcm = 1e-15
