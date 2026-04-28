@@ -86,20 +86,15 @@ def get_nitsche_terms(meshdata, E, nu, CLAMPED_FLAG, gdim = 2, porder = 1):
     L = gamma / h * ufl.inner(u_D_, v) * dsD
     L += - ufl.inner(ufl.dot(sigma(v), n), u_D_) * dsD
     
-    A = assemble_matrix(fem.form(a))
-    A.assemble()
-    
-    f = assemble_vector(fem.form(L))
-    f.assemble()
-    
-    Nh = V.dofmap.index_map.size_global
-
-    return petsc2scipy(A, shape = (gdim*Nh, gdim*Nh)), f.array, a, L
+    return a, L
    
 
 
 
-def get_problem(meshdata, E, nu, q_load, CLAMPED_FLAG, LOAD_FLAG, gdim = 2, porder = 1):
+def get_problem(meshdata, matparam, q_load, CLAMPED_FLAG, LOAD_FLAG, gdim = 2, porder = 1):
+    E = matparam['E']
+    nu = matparam['nu']
+    
     domain = meshdata.mesh
     cell_tags = meshdata.cell_tags
     facet_tags = meshdata.facet_tags
@@ -179,22 +174,20 @@ def get_Bmat(meshdata, gdim = 2, porder = 1):
     return B, WBT, W
 
 
-def get_KFmat(a,L, bcs):
+def get_KFmat(a,L, bcs, shape = None):
     k = fem.form(a)
     f = fem.form(L)
     
     K = assemble_matrix(k, bcs)
     K.assemble()
     
-    F = assemble_vector(f)
+    F = assemble_vector(f, bcs)
     
-    # Convert matrix
-    K_scipy = petsc2scipy(K)
+    # Convert matrix/Vector
+    K_ = petsc2scipy(K, shape)
+    F_ = F.array
     
-    # Convert vector
-    F_scipy = F.array
-    
-    return K_scipy, F_scipy
+    return K_, F_
 
 
 

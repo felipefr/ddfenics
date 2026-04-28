@@ -63,11 +63,15 @@ Nitmax_ddcm = 100
 # Exact Solution 
 meshdata = read_mesh(msh_file)
 a , L, bcs, V = get_problem(meshdata, E, nu, q_right, LEFT_FLAG, RIGHT_FLAG)
-K, F = get_KFmat(a, L, bcs=[])
-Kbc, Fbc, a_nitsche, L_nitsche = get_nitsche_terms(meshdata, E, nu, LEFT_FLAG)
+K, F = get_KFmat(a, L, bcs=bcs)
+a_nitsche, L_nitsche = get_nitsche_terms(meshdata, E, nu, LEFT_FLAG)
+Nh = V.dofmap.index_map.size_global*gdim
+K_bc, L_bc = get_KFmat(a_nitsche, L_nitsche, bcs = [], shape = (Nh, Nh))
+    
 
-K += Kbc
-F += Fbc
+
+# K += Kbc
+# F += Fbc
 
 uh_ex = sp.linalg.spsolve(K, F) 
 
