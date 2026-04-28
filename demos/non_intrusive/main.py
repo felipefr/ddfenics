@@ -89,7 +89,6 @@ DB = noisy_dataset(DB, sig = 0.1, n_copies=3)
 
 
 # Non-intrusive : 
-np.random.seed(10)
 nmandel = int(0.5*(gdim+1)*gdim)
 
 start = timer()
