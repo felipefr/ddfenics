@@ -51,6 +51,7 @@ class DDMetric:
                 
         self.sh0 = self.Sh.scalar_space
         self.dist_func = fem.Function(self.sh0)
+        self.Nqp = self.sh0.dofmap.list.size
         
         
     def reset(self, C):
@@ -148,7 +149,7 @@ class DDMetric:
     #     return np.sqrt(np.abs(self.form_energy(z)))  
 
     
-    def distance_distTree(self, distTree):
+    def norm_from_normloc(self, distTree):
         self.dist_func.x.array[:] = distTree.flatten()
         return L2norm_given_form(fem.form(self.dist_func**2*self.dx), self.comm) # L2 norm
 

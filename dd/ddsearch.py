@@ -28,18 +28,25 @@ class DDSearch:
         
         self.modelTree = NearestNeighbors(n_neighbors=1, algorithm = algorithm, metric = norm) 
         self.fit(self.ddmat.DB)
-        self.map = self.init_map(opInit, seed, self.metric.sh0.dofmap.list.size, len(self.ddmat.DB))
+        self.map = self.init_map(opInit, seed, self.metric.Nqp, len(self.ddmat.DB))
+        
+        self.return_z_db = {2 : self.__return_z_db_2, 
+                            3 : self.__return_z_db_2}[len(self.ddmat.DB.shape)]
+    
+    
+    def __return_z_db_3(self): # 3d (hyper)array
+        return self.ddmat.DB[self.map[:,0],:,:]
+
+    def __return_z_db_2(self): # 2d array (matrix)
+        return self.ddmat.DB[self.map[:,0],:]
     
     def fit(self, DB):
         self.modelTree.fit(self.metric.transformL(DB.reshape(DB.shape[0],-1)))        
         
     def find_neighbours(self, z, kneigh = 1):
-        # print(z.shape)
         self.local_dist , self.map = self.modelTree.kneighbors(self.metric.transformL(z), kneigh) # dist and map
-        self.global_dist = self.metric.distance_distTree(self.local_dist[:,0])
-        # print(np.max(self.map[:,0]), self.map[:,0].shape[0], self.ddmat.DB.shape[0], kneigh)
-        # input()
-        return self.ddmat.DB[self.map[:,0],:,:] 
+        self.global_dist = self.metric.norm_from_normloc(self.local_dist[:,0])
+        return self.return_z_db()
     
     @staticmethod
     def init_map(op, seed, ng, Nd):
@@ -54,39 +61,4 @@ class DDSearch:
             np.random.seed(seed)
             indexes = np.random.randint(0, Nd, ng)
             return indexes.reshape((ng,1))
-        
-# class DDSearch_pyflann:
-#     def __init__(self, metric, ddmat, algorithm = 'ball_tree', norm ='euclidean', opInit = 'zero', seed = 0):
-#         self.metric = metric
-#         self.ddmat = ddmat
-        
-#         self.modelTree = NearestNeighbors(n_neighbors=1, algorithm = algorithm, metric = norm) 
-#         self.fit(self.ddmat.DB)
-#         self.map = self.init_map(opInit, seed, self.metric.sh0.dim(), len(self.ddmat.DB))
-    
-#     def fit(self, DB):
-#         self.modelTree.fit(self.metric.transformL(DB.reshape(DB.shape[0],-1)))        
-        
-#     def find_neighbours(self, z, kneigh = 1):
-#         self.local_dist , self.map = self.modelTree.kneighbors(self.metric.transformL(z), kneigh) # dist and map
-#         self.global_dist = self.metric.distance_distTree(self.local_dist[:,0])
-#         return self.ddmat.DB[self.map[:,0],:,:] 
-    
-#     @staticmethod
-#     def init_map(op, seed, ng, Nd):
-        
-#         if(op == 'zero'):
-#             return np.zeros((ng,1),dtype=int)
-            
-#         elif(op == 'same'): # same order
-#             return np.arange(ng, dtype = int).reshape((ng,1))
-            
-#         elif(op == 'random'):
-#             np.random.seed(seed)
-#             indexes = np.random.randint(0, Nd, ng)
-#             return indexes.reshape((ng,1))
-        
-        
-        
-
         
