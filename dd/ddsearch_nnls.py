@@ -23,7 +23,13 @@ class DDSearchNNLS(DDSearch):
         self.L2reg = L2reg
         self.penfac = penfac
         self.kneigh = kneigh
-        super().__init__(metric, ddmat, algorithm, norm, opInit, seed)     
+        super().__init__(metric, ddmat, algorithm, norm, opInit, seed) 
+        
+    def __return_z_db_3(self): # 3d (hyper)array
+        return self.zdb.reshape((self.metric.Nqp,2,-1))
+
+    def __return_z_db_2(self): # 2d array (matrix)
+        return self.zdb
         
     def find_neighbours(self, z): 
         if(self.ddmat.DB.shape[0]<self.kneigh):
@@ -32,7 +38,7 @@ class DDSearchNNLS(DDSearch):
         ng, strain_dim = z.shape
         zbar = self.metric.transformL(z) # ng x strain_dim
         zdbbar = self.metric.transformL(self.ddmat.DB.reshape((-1,strain_dim)))
-        zdb = np.zeros(zbar.shape) # to be predicted
+        self.zdb = np.zeros_like(zbar) # to be predicted
         dist_loc = np.zeros(ng)
         
         ones = np.ones(self.kneigh).reshape((1,self.kneigh))
@@ -42,6 +48,7 @@ class DDSearchNNLS(DDSearch):
     
         A = np.zeros((strain_dim + 1 + self.kneigh, self.kneigh)) 
         b = np.zeros(strain_dim + 1 + self.kneigh)
+        
         for i in range(ng):
             A[:strain_dim,:] = zdbbar[self.map[i,:],:].T
             penfac = self.penfac*np.linalg.norm(A[:strain_dim,:], 'fro')/self.kneigh
@@ -54,21 +61,21 @@ class DDSearchNNLS(DDSearch):
             b[strain_dim] = np.sqrt(penfac)
             
             w = opt.nnls(A,b)[0]
-            zdb[i,:] = self.ddmat.DB.reshape((-1,strain_dim))[self.map[i,:],:].T @ w
+            self.zdb[i,:] = self.ddmat.DB.reshape((-1,strain_dim))[self.map[i,:],:].T @ w
             dist_loc[i] = np.linalg.norm(zbar[i,:] - A[:strain_dim,:]@w)
             
             
-        self.global_dist = self.metric.distance_distTree(dist_loc)
+        self.global_dist = self.metric.norm_from_normloc(dist_loc)
         
         
-        return zdb.reshape((ng,2,-1)) 
+        return self.return_z_db() 
     
-    def find_neighbours_classic(self, z, kneigh = 1):
-        # print(z.shape)
-        self.local_dist , self.map = self.modelTree.kneighbors(self.metric.transformL(z), kneigh) # dist and map
-        self.global_dist = self.metric.distance_distTree(self.local_dist[:,0])
-        # print(np.max(self.map[:,0]), self.map[:,0].shape[0], self.ddmat.DB.shape[0], kneigh)
-        # input()
-        return self.ddmat.DB[self.map[:,0],:,:] 
+    
+    # # Is it used ?
+    # def find_neighbours_classic(self, z, kneigh = 1):
+    #     self.local_dist , self.map = self.modelTree.kneighbors(self.metric.transformL(z), kneigh) # dist and map
+    #     self.global_dist = self.metric.norm_from_normloc(self.local_dist[:,0])
+        
+    #     return self.ddmat.DB[self.map[:,0],:,:] 
     
         

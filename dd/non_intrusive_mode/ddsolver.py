@@ -17,6 +17,7 @@ Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
 
 import numpy as np
 from timeit import default_timer as timer 
+import copy
 
 
 def concatenate_state(state):
@@ -69,7 +70,6 @@ class DDSolver:
             print("\tInner Iteration #%3d ,- Relative Error = %13.6e"%(k, error))
 
         return self.search.local_dist, k, total_time_PE, total_time_PD 
-    
 
     def project_onto_equilibrium(self):
         start = timer()
@@ -97,3 +97,16 @@ class DDSolver:
         for key in self.hist.keys():
             self.hist[key].append(self.calls_hist[key](m, m_ref, m0))
     
+    def project_onto_data_dropout(self, p_drop, neigh_drop = 1):
+        start = timer()
+        self.search.find_neighbours(self.problem.z_mech, kneigh = neigh_drop + 1)
+        ids_drop = np.where(np.random.rand(len(self.search.map))<p_drop)[0]
+        self.search.map[ids_drop,0] = self.search.map[ids_drop,neigh_drop]
+        self.search.local_dist[ids_drop,0] = self.search.local_dist[ids_drop,neigh_drop]
+        
+        self.problem.update_state_db(self.ddmat.DB[self.search.map[:,0],:])
+        self.search.global_dist = self.metric.norm_from_normloc(self.search.local_dist[:,0])
+
+        end = timer()
+        return end - start
+
