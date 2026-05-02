@@ -31,7 +31,8 @@ class DDSearchNNLS(DDSearch):
     def __return_z_db_2(self): # 2d array (matrix)
         return self.zdb
         
-    def find_neighbours(self, z): 
+    # kneigh is dummy: kept for compatibility reasons. kneigh returned is always self.kneigh
+    def find_neighbours(self, z, kneigh = -1):  
         if(self.ddmat.DB.shape[0]<self.kneigh):
             return self.find_neighbours_classic(z, kneigh = 1) 
         

@@ -33,6 +33,9 @@ class DDProblemNonIntrusive:
         self.C = self.metric.C
         self.Cinv = self.metric.Cinv
     
+        self.u = np.zeros(self.Nh)
+        self.eta = np.zeros(self.Nh)         
+        
         self.solver_lhs, self.solver_rhs, self.znew = self.create_problem()
         
         self.acc_op = acc_op
@@ -51,9 +54,6 @@ class DDProblemNonIntrusive:
             
     # Typically, you should instanciate self.u, return the solver, and the symbolic update for z    
     def create_problem(self):
-        self.u = np.zeros(self.Nh)
-        self.eta = np.zeros(self.Nh)         
-        
         C_big = sp.block_diag([self.C] * self.Nqp)
         
         K = self.WBT @ (C_big @ self.B) + self.Kbc
@@ -70,7 +70,8 @@ class DDProblemNonIntrusive:
     def get_sol(self):
         return {"state_mech" : self.z_mech ,
                 "state_db": self.z_db ,
-                "u" : self.u }
+                "u" : self.u, 
+                "eta" : self.eta}
     
     def solve(self):
         self.u = self.solver_lhs.solve(self.solver_rhs[0](self.z_db))
@@ -91,3 +92,7 @@ class DDProblemNonIntrusive:
     def _no_op(self):
         """Does nothing, used when APE is disabled."""
         pass
+    
+    # Used to change L
+    def set_L(self, L):
+        self.L = L
