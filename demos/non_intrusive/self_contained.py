@@ -591,7 +591,7 @@ class DDProblemNonIntrusive:
         K = self.WBT @ (C_big @ self.B) + self.Kbc
         LU = sp.linalg.splu(K)
         
-        # Obs : Lbc is only applied on u-equation. Eta-equation is homogeneous
+        # Obs : Lbc is only applied on u-equation. Eta-equation is homogeneous
         rhs = [lambda z_db: self.WBT@(z_db[:, :self.n_strain]@self.C).flatten() + self.Lbc, 
                lambda z_db: self.L - self.WBT@z_db[:, self.n_strain:].flatten() ]
         
@@ -730,7 +730,7 @@ ddmat_f = dd.DDMaterial(DB.reshape((-1,2,nmandel)), addzero = True, shuffle = -1
 Sh = dd.DDSpace(V, nmandel)
 spaces = [V, Sh]
 metric_f = dd.DDMetric(Cmat, Sh)
-# metric_f = dd.DDMetric(ddmat=ddmat_f, Sh = Sh, C_estimator_method = "sylvester")
+# metric_f = dd.DDMetric(ddmat=ddmat_f, Sh = Sh, C_estimator_method = "sylvester")
 # print(Cmat)
 # print(metric_f.C)
 
@@ -739,7 +739,7 @@ problem_f = dd.DDProblemInfinitesimalStrainNitsche(spaces, L, bcs_nitsche, metri
 # problem_f = dd.DDProblemInfinitesimalStrain(spaces, L, bcs, metric_f, is_accelerated = True)
 
 search_f = dd.DDSearch(metric_f, ddmat_f, algorithm = 'kd_tree', opInit = 'zero')
-# search_f = dd.DDSearchNNLS(metric_f, ddmat_f, algorithm = 'kd_tree', opInit = 'zero')
+# search_f = dd.DDSearchNNLS(metric_f, ddmat_f, algorithm = 'kd_tree', opInit = 'zero')
 
 solver_f = dd.DDSolver(problem_f, search_f)
 
