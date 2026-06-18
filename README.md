@@ -18,13 +18,13 @@ DDFenics relies on the following fenicsx 0.10 and the standard fenicsx and pytho
 
 ## Documentation [Maybe deprecated]
 1. Map between Galerkin-like variational approximation and FEniCs objects.
-![FenicsContinuum](FenicsContinuum.png)
+![FenicsContinuum](./docs/FenicsContinuum.png)
 
 2. Map between FEniCs and the corresponding objects in DDFenics.
-![FenicsDDFenics](FenicsDDFenics.png)
+![FenicsDDFenics](./docs/FenicsDDFenics.png)
 
 3. Map between (Model-free) Data-driven formulation and the corresponding objects in DDFenics.
-![DDFenics](DDFenics.png)
+![DDFenics](./docs/DDFenics.png)
 
 ### Basic Usage 
 There two modes of usage:
