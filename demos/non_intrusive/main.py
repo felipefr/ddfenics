@@ -59,12 +59,13 @@ q_right = 0.1
 tol_ddcm = 1e-15
 Nitmax_ddcm = 100
 
+matparam = {'E': E, 'nu': nu}
 
 # Exact Solution 
 meshdata = read_mesh(msh_file)
-a , L, bcs, V = get_problem(meshdata, E, nu, q_right, LEFT_FLAG, RIGHT_FLAG)
+a , L, bcs, V = get_problem(meshdata, matparam, q_right, LEFT_FLAG, RIGHT_FLAG)
 K, F = get_KFmat(a, L, bcs=bcs)
-a_nitsche, L_nitsche = get_nitsche_terms(meshdata, E, nu, LEFT_FLAG)
+a_nitsche, L_nitsche = get_nitsche_terms(meshdata, matparam, LEFT_FLAG)
 Nh = V.dofmap.index_map.size_global*gdim
 K_bc, L_bc = get_KFmat(a_nitsche, L_nitsche, bcs = [], shape = (Nh, Nh))
     
@@ -96,9 +97,9 @@ ddmat = ddni.DDMaterial(DB, sizes = [nmandel, nmandel], addzero = False, shuffle
 
 metric = ddni.DDMetric(C=Cmat, W = W)
 metric2 = ddni.DDMetric(C=Cmat, W = W)
-problem = ddni.DDProblemNonIntrusive(2*nmandel, W, B, WBT, F, Kbc, Fbc, metric, acc_op = "APE")
+problem = ddni.DDProblemNonIntrusive(2*nmandel, W, B, WBT, F, K_bc, L_bc, metric, acc_op = "APE")
 
-search = ddni.DDSearch(metric, ddmat, algorithm = 'kd_tree', opInit = 'zero', seed = 8)
+search = dd.DDSearch(metric, ddmat, algorithm = 'kd_tree', opInit = 'zero', seed = 8)
 solver = ddni.DDSolver(problem, search)
 
 solver.solve(tol = tol_ddcm, maxit = Nitmax_ddcm)

@@ -11,9 +11,9 @@ import pyvista as pv
 from mpi4py import MPI
 import numpy as np
 import matplotlib.pyplot as plt
+from petsc4py import PETSc
 from dolfinx import mesh, fem, io, plot
 import dolfinx.fem.petsc as petsc
-from dolfinx.fem.petsc import assemble_matrix, assemble_vector
 import ufl
 import scipy.sparse as sp
 from timeit import default_timer as timer 
@@ -43,8 +43,9 @@ def read_mesh(msh_file, gdim = 2):
     meshdata = io.gmsh.read_from_msh(msh_file, MPI.COMM_WORLD, gdim=gdim)
     return meshdata
 
-def get_nitsche_terms(meshdata, E, nu, CLAMPED_FLAG, gdim = 2, porder = 1):
-    gamma = 100
+def get_nitsche_terms(meshdata, matparam, CLAMPED_FLAG, gdim = 2, porder = 1, gamma = 100):
+    E = matparam['E']
+    nu = matparam['nu']
     uD = np.array([0.0,0.0])
     mu = E / (2.0 * (1.0 + nu))
     lmbda = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
@@ -161,11 +162,11 @@ def get_Bmat(meshdata, gdim = 2, porder = 1):
     B_form = ufl.inner(s, ten2man(eps(v))) * dx
     W_form = p*dx 
     
-    W = assemble_vector(fem.form(W_form))
+    W = petsc.assemble_vector(fem.form(W_form))
     W.assemble()
     W = W.array
     
-    WBT = assemble_matrix(fem.form(B_form))
+    WBT = petsc.assemble_matrix(fem.form(B_form))
     WBT.assemble()
     WBT = petsc2scipy(WBT)
     
@@ -178,10 +179,17 @@ def get_KFmat(a,L, bcs, shape = None):
     k = fem.form(a)
     f = fem.form(L)
     
-    K = assemble_matrix(k, bcs)
+    K = petsc.assemble_matrix(k, bcs)
     K.assemble()
     
-    F = assemble_vector(f, bcs)
+    F = petsc.assemble_vector(f)
+    
+    petsc.apply_lifting(F, [k], [bcs])
+
+    F.ghostUpdate(
+        addv=PETSc.InsertMode.ADD,
+        mode=PETSc.ScatterMode.REVERSE
+    )
     
     # Convert matrix/Vector
     K_ = petsc2scipy(K, shape)
