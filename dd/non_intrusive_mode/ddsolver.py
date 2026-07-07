@@ -57,6 +57,7 @@ class DDSolver:
         
         while (error > tol and k < maxit):
 
+            print("\tInner Iteration #%3d ,- Relative Error = %13.6e"%(k, error))
             total_time_PE += self.project_onto_equilibrium()
             total_time_PD += self.project_onto_data() 
         

@@ -31,7 +31,7 @@ class DDMetric:
     def __init__(self, C, W):
         self.C = C
         self.W = W
-        self.Nqp = len(W)
+        self.Nqp = self.W.shape[0]
         
         self.C = None
         self.CC = None
