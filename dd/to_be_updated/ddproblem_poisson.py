@@ -8,11 +8,16 @@ Created on Fri Jan  11 00:20:39 2023
 This file is part of ddfenics, a FEniCs-based (Model-Free) Data-driven 
 Computational Mechanics implementation.
 
-Copyright (c) 2022-2023, Felipe Rocha.
+Copyright (c) 2022-2026, Felipe Rocha.
 See file LICENSE.txt for license information.
-Please report all bugs and problems to <felipe.figueredo-rocha@ec-nantes.fr>, or
+Please report all bugs and problems to <felipe.figueredo-rocha@u-pec.fr>, or
 <f.rocha.felipe@gmail.com>
 
+For more info check : https://hal.science/GEM/hal-04611046v1
+Felipe Rocha, Thiago Quinelato, Laurent Stainier. 
+Some experiences in mixed finite element formulations for (model-free) data-driven computational mechanics. 
+16ème Colloque National en Calcul de Structures (CSMA 2024), CNRS; CSMA; ENS Paris-Saclay; CentraleSupélec, May 2024, Hyères, France. 
+⟨hal-04611046⟩
 """
 
 import ufl
